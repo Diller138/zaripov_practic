@@ -3,12 +3,28 @@
   "WorkspaceRootPath": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|c:\\users\\413\\documents\\github\\zaripov_practic\\xwx\\xwx\\formlogin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
-      "RelativeMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|solutionrelative:xwx\\formlogin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+      "AbsoluteMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|c:\\users\\413\\documents\\github\\zaripov_practic\\xwx\\xwx\\formadmin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|solutionrelative:xwx\\formadmin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|c:\\users\\413\\documents\\github\\zaripov_practic\\xwx\\xwx\\formlogin.resx||{81828910-B8B3-4D2B-99A3-067027C180C1}",
-      "RelativeMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|solutionrelative:xwx\\formlogin.resx||{81828910-B8B3-4D2B-99A3-067027C180C1}"
+      "AbsoluteMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|c:\\users\\413\\documents\\github\\zaripov_practic\\xwx\\xwx\\formeditaccount.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|solutionrelative:xwx\\formeditaccount.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|c:\\users\\413\\documents\\github\\zaripov_practic\\xwx\\xwx\\formeditgame.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|solutionrelative:xwx\\formeditgame.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|c:\\users\\413\\documents\\github\\zaripov_practic\\xwx\\xwx\\formregiser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|solutionrelative:xwx\\formregiser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\xwx\\formmain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|solutionrelative:xwx\\formmain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|c:\\users\\413\\documents\\github\\zaripov_practic\\xwx\\xwx\\formmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|solutionrelative:xwx\\formmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|c:\\users\\413\\documents\\github\\zaripov_practic\\xwx\\xwx\\formlogin.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -19,32 +35,16 @@
       "RelativeMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|solutionrelative:xwx\\formlogin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|c:\\users\\413\\documents\\github\\zaripov_practic\\xwx\\xwx\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|solutionrelative:xwx\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|c:\\users\\413\\documents\\github\\zaripov_practic\\xwx\\xwx\\formadmin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|solutionrelative:xwx\\formadmin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|c:\\users\\413\\documents\\github\\zaripov_practic\\xwx\\xwx\\formadmin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
-      "RelativeMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|solutionrelative:xwx\\formadmin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|c:\\users\\413\\documents\\github\\zaripov_practic\\xwx\\xwx\\formmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|solutionrelative:xwx\\formmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|c:\\users\\413\\documents\\github\\zaripov_practic\\xwx\\xwx\\formmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
-      "RelativeMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|solutionrelative:xwx\\formmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+      "AbsoluteMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|c:\\users\\413\\documents\\github\\zaripov_practic\\xwx\\xwx\\formlogin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|solutionrelative:xwx\\formlogin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
     },
     {
       "AbsoluteMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|c:\\users\\413\\documents\\github\\zaripov_practic\\xwx\\xwx\\databasehelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|solutionrelative:xwx\\databasehelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|c:\\users\\413\\documents\\github\\zaripov_practic\\xwx\\xwx\\formmain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
-      "RelativeMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|solutionrelative:xwx\\formmain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+      "AbsoluteMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\xwx\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{15A40CD0-5146-485F-9D48-8973E5393E41}|XwX\\XwX.csproj|solutionrelative:xwx\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -54,7 +54,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 109,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 7,
           "Children": [
             {
               "$type": "Bookmark",
@@ -67,126 +67,117 @@
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "FormLogin.resx",
-              "DocumentMoniker": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormLogin.resx",
-              "RelativeDocumentMoniker": "XwX\\FormLogin.resx",
-              "ToolTip": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormLogin.resx",
-              "RelativeToolTip": "XwX\\FormLogin.resx",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001005|",
-              "WhenOpened": "2026-10-29T10:29:58.633Z",
+              "Title": "FormEditAccount.cs",
+              "DocumentMoniker": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormEditAccount.cs",
+              "RelativeDocumentMoniker": "XwX\\FormEditAccount.cs",
+              "ToolTip": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormEditAccount.cs",
+              "RelativeToolTip": "XwX\\FormEditAccount.cs",
+              "ViewState": "AgIAABYBAAAAAAAAAAAowCsBAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-30T09:51:02.161Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "FormLogin.Designer.cs",
-              "DocumentMoniker": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormLogin.Designer.cs",
-              "RelativeDocumentMoniker": "XwX\\FormLogin.Designer.cs",
-              "ToolTip": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormLogin.Designer.cs",
-              "RelativeToolTip": "XwX\\FormLogin.Designer.cs",
-              "ViewState": "AgIAAEIAAAAAAAAAAAAuwFUAAAASAAAAAAAAAA==",
+              "Title": "FormEditGame.cs",
+              "DocumentMoniker": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormEditGame.cs",
+              "RelativeDocumentMoniker": "XwX\\FormEditGame.cs",
+              "ToolTip": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormEditGame.cs",
+              "RelativeToolTip": "XwX\\FormEditGame.cs",
+              "ViewState": "AgIAAIkAAAAAAAAAAAAowKcAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-29T10:29:34.97Z",
+              "WhenOpened": "2026-10-30T09:50:29.804Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 3,
-              "Title": "FormLogin.cs",
-              "DocumentMoniker": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormLogin.cs",
-              "RelativeDocumentMoniker": "XwX\\FormLogin.cs",
-              "ToolTip": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormLogin.cs",
-              "RelativeToolTip": "XwX\\FormLogin.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAqwAcAAAAZAAAAAAAAAA==",
+              "Title": "FormRegiser.cs",
+              "DocumentMoniker": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormRegiser.cs",
+              "RelativeDocumentMoniker": "XwX\\FormRegiser.cs",
+              "ToolTip": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormRegiser.cs",
+              "RelativeToolTip": "XwX\\FormRegiser.cs",
+              "ViewState": "AgIAAGwAAAAAAAAAAAAowIAAAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-29T10:27:51.219Z",
+              "WhenOpened": "2026-10-30T09:48:23.747Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "FormMain.cs",
+              "DocumentMoniker": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormMain.cs",
+              "RelativeDocumentMoniker": "XwX\\FormMain.cs",
+              "ToolTip": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormMain.cs",
+              "RelativeToolTip": "XwX\\FormMain.cs",
+              "ViewState": "AgIAAD8AAAAAAAAAAAAAwFkAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-30T08:25:40.167Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "FormManager.cs",
+              "DocumentMoniker": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormManager.cs",
+              "RelativeDocumentMoniker": "XwX\\FormManager.cs",
+              "ToolTip": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormManager.cs",
+              "RelativeToolTip": "XwX\\FormManager.cs",
+              "ViewState": "AgIAAHIAAAAAAAAAAAAowJAAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-30T09:46:39.131Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "FormAdmin.cs",
+              "DocumentMoniker": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormAdmin.cs",
+              "RelativeDocumentMoniker": "XwX\\FormAdmin.cs",
+              "ToolTip": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormAdmin.cs",
+              "RelativeToolTip": "XwX\\FormAdmin.cs",
+              "ViewState": "AgIAAIcAAAAAAAAAAAAAwJoAAABrAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-30T09:46:42.722Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "FormLogin.Designer.cs",
+              "DocumentMoniker": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormLogin.Designer.cs",
+              "RelativeDocumentMoniker": "XwX\\FormLogin.Designer.cs",
+              "ToolTip": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormLogin.Designer.cs",
+              "RelativeToolTip": "XwX\\FormLogin.Designer.cs",
+              "ViewState": "AgIAADIAAAAAAAAAAAAjwEAAAAAyAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-30T08:48:34.62Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "FormLogin.cs",
+              "DocumentMoniker": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormLogin.cs",
+              "RelativeDocumentMoniker": "XwX\\FormLogin.cs",
+              "ToolTip": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormLogin.cs",
+              "RelativeToolTip": "XwX\\FormLogin.cs",
+              "ViewState": "AgIAABgAAAAAAAAAAAAowCkAAAAwAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-30T08:47:33.66Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
               "Title": "FormLogin.cs [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]",
               "DocumentMoniker": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormLogin.cs",
               "RelativeDocumentMoniker": "XwX\\FormLogin.cs",
               "ToolTip": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormLogin.cs [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]",
               "RelativeToolTip": "XwX\\FormLogin.cs [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-29T10:25:30.005Z",
-              "EditorCaption": " [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "FormAdmin.cs",
-              "DocumentMoniker": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormAdmin.cs",
-              "RelativeDocumentMoniker": "XwX\\FormAdmin.cs",
-              "ToolTip": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormAdmin.cs",
-              "RelativeToolTip": "XwX\\FormAdmin.cs",
-              "ViewState": "AgIAAAcAAAAAAAAAAAAuwBkAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-29T10:19:54.874Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "FormManager.cs",
-              "DocumentMoniker": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormManager.cs",
-              "RelativeDocumentMoniker": "XwX\\FormManager.cs",
-              "ToolTip": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormManager.cs",
-              "RelativeToolTip": "XwX\\FormManager.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-29T10:19:44.296Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\Program.cs",
-              "RelativeDocumentMoniker": "XwX\\Program.cs",
-              "ToolTip": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\Program.cs",
-              "RelativeToolTip": "XwX\\Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAAAnAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-29T10:19:39.75Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "FormManager.cs [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]",
-              "DocumentMoniker": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormManager.cs",
-              "RelativeDocumentMoniker": "XwX\\FormManager.cs",
-              "ToolTip": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormManager.cs [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]",
-              "RelativeToolTip": "XwX\\FormManager.cs [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-29T10:13:28.659Z",
-              "EditorCaption": " [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "FormAdmin.cs [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]",
-              "DocumentMoniker": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormAdmin.cs",
-              "RelativeDocumentMoniker": "XwX\\FormAdmin.cs",
-              "ToolTip": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormAdmin.cs [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]",
-              "RelativeToolTip": "XwX\\FormAdmin.cs [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-29T10:13:16.159Z",
-              "EditorCaption": " [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
-              "Title": "FormMain.cs [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]",
-              "DocumentMoniker": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormMain.cs",
-              "RelativeDocumentMoniker": "XwX\\FormMain.cs",
-              "ToolTip": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\FormMain.cs [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]",
-              "RelativeToolTip": "XwX\\FormMain.cs [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-29T10:12:56.302Z",
+              "WhenOpened": "2026-10-30T08:45:08.533Z",
               "EditorCaption": " [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]"
             },
             {
@@ -197,10 +188,22 @@
               "RelativeDocumentMoniker": "XwX\\DatabaseHelper.cs",
               "ToolTip": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\DatabaseHelper.cs",
               "RelativeToolTip": "XwX\\DatabaseHelper.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAC8AAAAOAAAAAAAAAA==",
+              "ViewState": "AgIAACkAAAAAAAAAAAAqwDYAAAA6AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-29T10:04:31.828Z",
+              "WhenOpened": "2026-10-30T08:36:24.572Z",
               "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\Program.cs",
+              "RelativeDocumentMoniker": "XwX\\Program.cs",
+              "ToolTip": "C:\\Users\\413\\Documents\\GitHub\\zaripov_practic\\XwX\\XwX\\Program.cs",
+              "RelativeToolTip": "XwX\\Program.cs",
+              "ViewState": "AgIAAAQAAAAAAAAAAAAiwBAAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-29T10:19:39.75Z"
             }
           ]
         }

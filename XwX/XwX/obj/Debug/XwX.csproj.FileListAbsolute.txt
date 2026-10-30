@@ -39,3 +39,4 @@ C:\Users\413\Documents\GitHub\zaripov_practic\XwX\XwX\obj\Debug\XwX.csproj.Up2Da
 C:\Users\413\Documents\GitHub\zaripov_practic\XwX\XwX\obj\Debug\XwX.exe
 C:\Users\413\Documents\GitHub\zaripov_practic\XwX\XwX\obj\Debug\XwX.pdb
 C:\Users\413\Documents\GitHub\zaripov_practic\XwX\XwX\obj\Debug\XwX.FormAdmin.resources
+C:\Users\413\Documents\GitHub\zaripov_practic\XwX\XwX\obj\Debug\GameAccountRental.FormMain.resources

@@ -106,6 +106,18 @@
     <Compile Include="FormAdmin.Designer.cs">
       <DependentUpon>FormAdmin.cs</DependentUpon>
     </Compile>
+    <Compile Include="FormEditAccount.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormEditAccount.Designer.cs">
+      <DependentUpon>FormEditAccount.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormEditGame.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormEditGame.Designer.cs">
+      <DependentUpon>FormEditGame.cs</DependentUpon>
+    </Compile>
     <Compile Include="FormLogin.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -115,14 +127,14 @@
     <Compile Include="FormMain.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FormMain.Designer.cs">
-      <DependentUpon>FormMain.cs</DependentUpon>
-    </Compile>
     <Compile Include="FormManager.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FormManager.Designer.cs">
-      <DependentUpon>FormManager.cs</DependentUpon>
+    <Compile Include="FormRegiser.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormRegiser.Designer.cs">
+      <DependentUpon>FormRegiser.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -131,6 +143,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FormLogin.resx">
       <DependentUpon>FormLogin.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormMain.resx">
+      <DependentUpon>FormMain.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
