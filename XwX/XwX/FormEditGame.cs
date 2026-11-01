@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using Npgsql;
 
-namespace RentalApp
+namespace GameAccountRental
 {
     public class FormEditGame : Form
     {
@@ -21,66 +21,58 @@ namespace RentalApp
             this.MinimumSize = new Size(800, 600);
             this.Padding = new Padding(20);
             this.Text = gameId.HasValue ? "Редактирование игры" : "Новая игра";
+            Theme.Apply(this);
+
+            var host = new Panel { Dock = DockStyle.Fill, BackColor = Theme.Bg };
+            this.Controls.Add(host);
+            this.Controls.Add(Theme.MakeHeader(this.Text, false));
+
+            var card = Theme.MakeCard(440);
+            host.Controls.Add(card);
 
             var table = new TableLayoutPanel
             {
                 AutoSize = true,
-                ColumnCount = 2,
-                Padding = new Padding(10)
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                ColumnCount = 1,
+                Location = new Point(32, 32)
             };
-            table.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 300));
+            table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 376));
+            card.Controls.Add(table);
 
-            txtId = new TextBox { Dock = DockStyle.Fill, ReadOnly = true };
-            txtTitle = new TextBox { Dock = DockStyle.Fill };
-            txtGenre = new TextBox { Dock = DockStyle.Fill };
-            cmbPlatform = new ComboBox { Dock = DockStyle.Fill, DropDownStyle = ComboBoxStyle.DropDownList };
+            txtId = new TextBox { ReadOnly = true };
+            txtTitle = new TextBox();
+            txtGenre = new TextBox();
+            cmbPlatform = new ComboBox();
 
-            AddRow(table, "ID:", txtId);
-            AddRow(table, "Название:", txtTitle);
-            AddRow(table, "Жанр:", txtGenre);
-            AddRow(table, "Платформа:", cmbPlatform);
+            Theme.StyleInput(txtId);
+            txtId.BackColor = Theme.Bg;      // ID нельзя менять — визуально «приглушаем»
+            txtId.ForeColor = Theme.Muted;
+            Theme.StyleInput(txtTitle);
+            Theme.StyleInput(txtGenre);
+            Theme.StyleCombo(cmbPlatform);
+            Theme.SetPlaceholder(txtTitle, "Например, Counter-Strike 2");
+            Theme.SetPlaceholder(txtGenre, "Например, Шутер");
 
-            btnSave = new Button
-            {
-                Text = "Сохранить",
-                Height = 40,
-                Dock = DockStyle.Fill,
-                FlatStyle = FlatStyle.Flat,
-                BackColor = Color.FromArgb(45, 45, 48),
-                ForeColor = Color.White
-            };
+            Theme.AddStacked(table, "ID", txtId);
+            Theme.AddStacked(table, "Название", txtTitle);
+            Theme.AddStacked(table, "Жанр", txtGenre);
+            Theme.AddStacked(table, "Платформа", cmbPlatform);
+
+            btnSave = Theme.MakeButton("Сохранить", BtnKind.Primary);
+            btnSave.Height = 44;
+            btnSave.Dock = DockStyle.Fill;
+            btnSave.Margin = new Padding(3, 16, 3, 0);
             btnSave.Click += BtnSave_Click;
-            table.Controls.Add(new Label(), 0, table.RowCount);
-            table.Controls.Add(btnSave, 1, table.RowCount);
-            table.RowCount++;
+            int r = table.RowCount;
+            table.Controls.Add(btnSave, 0, r);
+            table.RowCount = r + 1;
 
-            var host = new Panel { Dock = DockStyle.Fill };
-            host.Controls.Add(table);
-            host.Resize += (s, e) =>
-            {
-                table.Left = Math.Max(0, (host.ClientSize.Width - table.Width) / 2);
-                table.Top = Math.Max(0, (host.ClientSize.Height - table.Height) / 2);
-            };
-            this.Controls.Add(host);
+            card.Height = table.GetPreferredSize(Size.Empty).Height + 64;
+            Theme.CenterIn(host, card);
 
             LoadPlatforms();
             if (gameId.HasValue) LoadGame(gameId.Value);
-        }
-
-        private static void AddRow(TableLayoutPanel t, string caption, Control c)
-        {
-            var lbl = new Label
-            {
-                Text = caption,
-                AutoSize = true,
-                Anchor = AnchorStyles.Left,
-                Margin = new Padding(3, 10, 10, 10)
-            };
-            c.Margin = new Padding(3, 8, 3, 8);
-            t.Controls.Add(lbl, 0, t.RowCount);
-            t.Controls.Add(c, 1, t.RowCount);
-            t.RowCount++;
         }
 
         private void LoadPlatforms()
@@ -96,7 +88,7 @@ namespace RentalApp
                 cmbPlatform.DisplayMember = "name";
                 cmbPlatform.ValueMember = "id";
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Theme.Error(ex.Message); }
         }
 
         private void LoadGame(int id)
@@ -105,24 +97,25 @@ namespace RentalApp
             {
                 using (var conn = new NpgsqlConnection(ConnStr))
                 using (var cmd = new NpgsqlCommand(
-                    "SELECT id, name, genre, platform_id FROM game WHERE id = @id", conn))
+                    "SELECT id, title, genre, platform_id FROM game WHERE id = @id", conn))
                 {
-                    cmd.Parameters.Add(new NpgsqlParameter("@id", id)); conn.Open();
+                    cmd.Parameters.Add(new NpgsqlParameter("@id", id));
+                    conn.Open();
                     using (var r = cmd.ExecuteReader())
                     {
                         if (!r.Read())
                         {
-                            MessageBox.Show("Игра не найдена.");
+                            Theme.Warn("Игра не найдена.");
                             return;
                         }
                         txtId.Text = r["id"].ToString();
-                        txtTitle.Text = Convert.ToString(r["name"]);
+                        txtTitle.Text = Convert.ToString(r["title"]);
                         txtGenre.Text = r["genre"] == DBNull.Value ? "" : Convert.ToString(r["genre"]);
                         cmbPlatform.SelectedValue = Convert.ToInt32(r["platform_id"]);
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Theme.Error(ex.Message); }
         }
 
         private void BtnSave_Click(object sender, EventArgs e)
@@ -130,12 +123,12 @@ namespace RentalApp
             string title = txtTitle.Text.Trim();
             if (title.Length == 0)
             {
-                MessageBox.Show("Введите название игры.");
+                Theme.Warn("Введите название игры.");
                 return;
             }
             if (cmbPlatform.SelectedValue == null)
             {
-                MessageBox.Show("Выберите платформу.");
+                Theme.Warn("Выберите платформу.");
                 return;
             }
 
@@ -143,13 +136,13 @@ namespace RentalApp
             {
                 bool isNew = string.IsNullOrWhiteSpace(txtId.Text);
                 string sql = isNew
-                    ? "INSERT INTO game (name, genre, platform_id) VALUES (@name, @genre, @pid)"
-                    : "UPDATE game SET name = @name, genre = @genre, platform_id = @pid WHERE id = @id";
+                    ? "INSERT INTO game (title, genre, platform_id) VALUES (@title, @genre, @pid)"
+                    : "UPDATE game SET title = @title, genre = @genre, platform_id = @pid WHERE id = @id";
 
                 using (var conn = new NpgsqlConnection(ConnStr))
                 using (var cmd = new NpgsqlCommand(sql, conn))
                 {
-                    cmd.Parameters.Add(new NpgsqlParameter("@name", title));
+                    cmd.Parameters.Add(new NpgsqlParameter("@title", title));
                     cmd.Parameters.Add(new NpgsqlParameter("@genre", txtGenre.Text.Trim()));
                     cmd.Parameters.Add(new NpgsqlParameter("@pid", Convert.ToInt32(cmbPlatform.SelectedValue)));
                     if (!isNew)
@@ -162,7 +155,7 @@ namespace RentalApp
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Theme.Error(ex.Message); }
         }
     }
 }

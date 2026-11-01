@@ -1,19 +1,17 @@
-﻿using GameAccountRental;
-using Microsoft.VisualBasic; // Добавьте ссылку на сборку Microsoft.VisualBasic
-using Npgsql;
+﻿using Npgsql;
 using System;
 using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace RentalApp
+namespace GameAccountRental
 {
     public class FormMain : Form
     {
         private const string ConnStr = "Host=localhost;Port=5432;Database=MyDataBase;Username=user1;Password=12345678";
 
         private TextBox txtSearch;
-        private Button btnSearch, btnRent;
+        private Button btnSearch, btnRent, btnLogout;
         private DataGridView dgv;
 
         public FormMain()
@@ -22,52 +20,59 @@ namespace RentalApp
             this.StartPosition = FormStartPosition.CenterScreen;
             this.MinimumSize = new Size(800, 600);
             this.Text = "Каталог аккаунтов";
+            Theme.Apply(this);
 
-            // Fill добавляем первым, затем Bottom и Top
+            // Порядок добавления: Fill -> Bottom -> Top (последний Top окажется выше всех)
+            var gridHost = new Panel { Dock = DockStyle.Fill, Padding = new Padding(16, 4, 16, 4), BackColor = Theme.Bg };
             dgv = new DataGridView
             {
                 Dock = DockStyle.Fill,
                 ReadOnly = true,
                 AllowUserToAddRows = false,
                 AllowUserToDeleteRows = false,
+                AllowUserToResizeRows = false,
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 MultiSelect = false,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                BackgroundColor = Color.White
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
             };
-            this.Controls.Add(dgv);
+            Theme.StyleGrid(dgv);
+            gridHost.Controls.Add(dgv);
+            this.Controls.Add(gridHost);
 
-            btnRent = MakeButton("Арендовать");
-            btnRent.Dock = DockStyle.Bottom;
-            btnRent.Height = 45;
+            var bottom = new Panel { Dock = DockStyle.Bottom, Height = 70, Padding = new Padding(16, 10, 16, 16), BackColor = Theme.Bg };
+            btnRent = Theme.MakeButton("Арендовать выбранный аккаунт", BtnKind.Primary);
+            btnRent.Dock = DockStyle.Fill;
             btnRent.Click += BtnRent_Click;
-            this.Controls.Add(btnRent);
 
-            var top = new Panel { Dock = DockStyle.Top, Height = 50, Padding = new Padding(8) };
-            txtSearch = new TextBox { Left = 8, Top = 12, Width = 350 };
-            btnSearch = MakeButton("Поиск");
-            btnSearch.Left = 368;
-            btnSearch.Top = 10;
-            btnSearch.Width = 100;
+            btnLogout = Theme.MakeButton("Выйти", BtnKind.Danger);
+            btnLogout.Dock = DockStyle.Right;
+            btnLogout.Width = 160;
+            btnLogout.Click += (s, e) => this.Close();
+
+            // Порядок: Fill -> разделитель -> Right (последний докуется первым)
+            bottom.Controls.Add(btnRent);
+            bottom.Controls.Add(new Panel { Dock = DockStyle.Right, Width = 12, BackColor = Theme.Bg });
+            bottom.Controls.Add(btnLogout);
+            this.Controls.Add(bottom);
+
+            var toolbar = new Panel { Dock = DockStyle.Top, Height = 64, BackColor = Theme.Bg };
+            txtSearch = new TextBox { Left = 16, Top = 18, Width = 400 };
+            Theme.StyleInput(txtSearch);
+            Theme.SetPlaceholder(txtSearch, "Поиск по аккаунту, платформе или игре…");
+            btnSearch = Theme.MakeButton("Найти", BtnKind.Secondary);
+            btnSearch.Left = 428;
+            btnSearch.Top = 17;
+            btnSearch.Width = 110;
             btnSearch.Height = 30;
             btnSearch.Click += (s, e) => LoadData();
-            top.Controls.Add(txtSearch);
-            top.Controls.Add(btnSearch);
-            this.Controls.Add(top);
+            toolbar.Controls.Add(txtSearch);
+            toolbar.Controls.Add(btnSearch);
+            this.Controls.Add(toolbar);
+
+            this.Controls.Add(Theme.MakeHeader("Каталог аккаунтов", true));
             this.AcceptButton = btnSearch;
 
             this.Load += (s, e) => LoadData();
-        }
-
-        private static Button MakeButton(string text)
-        {
-            return new Button
-            {
-                Text = text,
-                FlatStyle = FlatStyle.Flat,
-                BackColor = Color.FromArgb(45, 45, 48),
-                ForeColor = Color.White
-            };
         }
 
         private void LoadData()
@@ -76,7 +81,7 @@ namespace RentalApp
             {
                 const string sql =
                     "SELECT a.id, a.login AS \"Аккаунт\", p.name AS \"Платформа\", " +
-                    "       COALESCE(string_agg(DISTINCT g.name, ', '), '') AS \"Игры\", " +
+                    "       COALESCE(string_agg(DISTINCT g.title, ', '), '') AS \"Игры\", " +
                     "       a.price_per_day AS \"Цена/сутки\", s.name AS \"Статус\" " +
                     "FROM account a " +
                     "JOIN platform p        ON p.id = a.platform_id " +
@@ -86,9 +91,9 @@ namespace RentalApp
                     "WHERE @q = '' OR a.login ILIKE '%' || @q || '%' " +
                     "   OR p.name ILIKE '%' || @q || '%' " +
                     "   OR EXISTS (SELECT 1 FROM account_game ag2 JOIN game g2 ON g2.id = ag2.game_id " +
-                    "              WHERE ag2.account_id = a.id AND g2.name ILIKE '%' || @q || '%') " +
+                    "              WHERE ag2.account_id = a.id AND g2.title ILIKE '%' || @q || '%') " +
                     "GROUP BY a.id, a.login, p.name, a.price_per_day, s.name " +
-                    "ORDER BY a.id";
+                    "ORDER BY CASE WHEN lower(s.name) = 'свободен' THEN 0 ELSE 1 END, a.id";
 
                 var dt = new DataTable();
                 using (var conn = new NpgsqlConnection(ConnStr))
@@ -105,10 +110,37 @@ namespace RentalApp
                     dgv.Columns["id"].Visible = false;
                 foreach (DataGridViewColumn col in dgv.Columns)
                     col.SortMode = DataGridViewColumnSortMode.Automatic;
+
+                var price = dgv.Columns["Цена/сутки"];
+                if (price != null)
+                {
+                    price.DefaultCellStyle.Format = "N2";
+                    price.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                Theme.Error(ex.Message);
+            }
+        }
+
+        private static string GetStatus(NpgsqlConnection conn, int accountId)
+        {
+            using (var cmd = new NpgsqlCommand(
+                "SELECT s.name FROM account a JOIN account_status s ON s.id = a.status_id WHERE a.id = @aid", conn))
+            {
+                cmd.Parameters.Add(new NpgsqlParameter("@aid", accountId));
+                return Convert.ToString(cmd.ExecuteScalar());
+            }
+        }
+
+        private static int? GetStatusId(NpgsqlConnection conn, string name)
+        {
+            using (var cmd = new NpgsqlCommand("SELECT id FROM account_status WHERE name = @n", conn))
+            {
+                cmd.Parameters.Add(new NpgsqlParameter("@n", name));
+                object res = cmd.ExecuteScalar();
+                return res == null || res == DBNull.Value ? (int?)null : Convert.ToInt32(res);
             }
         }
 
@@ -116,7 +148,7 @@ namespace RentalApp
         {
             if (dgv.CurrentRow == null)
             {
-                MessageBox.Show("Выберите аккаунт.");
+                Theme.Warn("Выберите аккаунт.");
                 return;
             }
 
@@ -128,48 +160,77 @@ namespace RentalApp
                 {
                     conn.Open();
 
-                    // Актуальный статус из БД
-                    string status;
-                    using (var cmd = new NpgsqlCommand(
-                        "SELECT s.name FROM account a JOIN account_status s ON s.id = a.status_id WHERE a.id = @aid", conn))
-                    {
-                        cmd.Parameters.Add(new NpgsqlParameter("@aid", accountId));
-                        status = Convert.ToString(cmd.ExecuteScalar());
-                    }
-
+                    // Быстрая проверка до вопроса о сроке
+                    string status = GetStatus(conn, accountId);
                     if (!string.Equals(status, "свободен", StringComparison.OrdinalIgnoreCase))
                     {
-                        MessageBox.Show("Аккаунт недоступен для аренды (статус: " + status + ").");
+                        Theme.Warn("Этот аккаунт уже занят. Выберите другой — свободные аккаунты показаны в начале списка.");
+                        LoadData();
                         return;
                     }
 
-                    string input = Interaction.InputBox("На сколько дней арендовать?", "Аренда", "1");
-                    if (string.IsNullOrWhiteSpace(input)) return; // отмена
-
-                    int days;
-                    if (!int.TryParse(input, out days) || days <= 0)
+                    int? freeId = GetStatusId(conn, "свободен");
+                    int? busyId = GetStatusId(conn, "арендован");
+                    if (!freeId.HasValue || !busyId.HasValue)
                     {
-                        MessageBox.Show("Введите целое число дней больше нуля.");
+                        Theme.Error("В справочнике статусов аккаунтов должны быть значения «свободен» и «занят».");
                         return;
                     }
 
-                    using (var cmd = new NpgsqlCommand(
-                        "INSERT INTO orders (user_id, account_id, start_date, end_date, total_price, order_status_id) " +
-                        "VALUES (@uid, @aid, CURRENT_DATE, CURRENT_DATE + @days, 0, 1)", conn))
+                    int? days = Theme.PromptNumber(this, "Аренда", "На сколько дней арендовать?", 1, 365, 1);
+                    if (!days.HasValue) return; // отмена
+
+                    using (var tx = conn.BeginTransaction())
                     {
-                        cmd.Parameters.Add(new NpgsqlParameter("@uid", Session.CurrentUser.Id));
-                        cmd.Parameters.Add(new NpgsqlParameter("@aid", accountId));
-                        cmd.Parameters.Add(new NpgsqlParameter("@days", days));
-                        cmd.ExecuteNonQuery();
+                        // Атомарно «занимаем» аккаунт: сработает, только если он всё ещё свободен
+                        int updated;
+                        using (var cmd = new NpgsqlCommand(
+                            "UPDATE account SET status_id = @busy WHERE id = @aid AND status_id = @free", conn, tx))
+                        {
+                            cmd.Parameters.Add(new NpgsqlParameter("@busy", busyId.Value));
+                            cmd.Parameters.Add(new NpgsqlParameter("@free", freeId.Value));
+                            cmd.Parameters.Add(new NpgsqlParameter("@aid", accountId));
+                            updated = cmd.ExecuteNonQuery();
+                        }
+
+                        if (updated == 0)
+                        {
+                            tx.Rollback();
+                            Theme.Warn("Пока вы выбирали срок, этот аккаунт уже арендовал другой пользователь. Выберите другой.");
+                            LoadData();
+                            return;
+                        }
+
+                        using (var cmd = new NpgsqlCommand(
+                            "INSERT INTO orders (user_id, account_id, start_date, end_date, total_price, order_status_id) " +
+                            "VALUES (@uid, @aid, CURRENT_DATE, CURRENT_DATE + @days, 0, 1)", conn, tx))
+                        {
+                            cmd.Parameters.Add(new NpgsqlParameter("@uid", Session.CurrentUser.Id));
+                            cmd.Parameters.Add(new NpgsqlParameter("@aid", accountId));
+                            cmd.Parameters.Add(new NpgsqlParameter("@days", days.Value));
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        tx.Commit();
                     }
                 }
 
-                MessageBox.Show("Заявка на аренду создана.");
+                Theme.Info("Заявка на аренду создана. Аккаунт закреплён за вами до подтверждения менеджером.");
+                LoadData();
+            }
+            catch (PostgresException ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex);
+                if (ex.SqlState == "23505" || ex.SqlState == "23P01" || ex.SqlState == "23514" || ex.SqlState == "P0001")
+                    Theme.Warn("Этот аккаунт уже арендован или занят на выбранные даты. Пожалуйста, выберите другой аккаунт.");
+                else
+                    Theme.Error("Не удалось оформить аренду. Попробуйте ещё раз или обратитесь к администратору.");
                 LoadData();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                System.Diagnostics.Debug.WriteLine(ex);
+                Theme.Error("Не удалось оформить аренду. Проверьте подключение к базе данных и попробуйте ещё раз.");
             }
         }
     }

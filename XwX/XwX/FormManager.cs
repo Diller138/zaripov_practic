@@ -1,11 +1,10 @@
-﻿using GameAccountRental;
-using Npgsql;
+﻿using Npgsql;
 using System;
 using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace RentalApp
+namespace GameAccountRental
 {
     public class FormManager : Form
     {
@@ -20,52 +19,53 @@ namespace RentalApp
             this.StartPosition = FormStartPosition.CenterScreen;
             this.MinimumSize = new Size(800, 600);
             this.Text = "Панель менеджера";
+            Theme.Apply(this);
 
+            // Fill -> Bottom -> Top
+            var gridHost = new Panel { Dock = DockStyle.Fill, Padding = new Padding(16, 4, 16, 4), BackColor = Theme.Bg };
             dgv = new DataGridView
             {
                 Dock = DockStyle.Fill,
                 ReadOnly = true,
                 AllowUserToAddRows = false,
                 AllowUserToDeleteRows = false,
+                AllowUserToResizeRows = false,
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 MultiSelect = false,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                BackgroundColor = Color.White
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
             };
-            this.Controls.Add(dgv);
+            Theme.StyleGrid(dgv);
+            gridHost.Controls.Add(dgv);
+            this.Controls.Add(gridHost);
 
-            btnLogout = MakeButton("Выйти");
-            btnLogout.Dock = DockStyle.Bottom;
-            btnLogout.Height = 45;
+            var bottom = new Panel { Dock = DockStyle.Bottom, Height = 70, Padding = new Padding(16, 10, 16, 16), BackColor = Theme.Bg };
+            btnLogout = Theme.MakeButton("Выйти", BtnKind.Danger);
+            btnLogout.Dock = DockStyle.Fill;
             btnLogout.Click += (s, e) => this.Close();
-            this.Controls.Add(btnLogout);
+            bottom.Controls.Add(btnLogout);
+            this.Controls.Add(bottom);
 
-            var top = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 55, Padding = new Padding(8) };
-            btnRefresh = MakeButton("Обновить");
-            btnAccept = MakeButton("Принять");
-            btnIssue = MakeButton("Выдать");
+            var toolbar = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Top,
+                Height = 62,
+                Padding = new Padding(13, 12, 13, 6),
+                BackColor = Theme.Bg
+            };
+            btnRefresh = Theme.MakeButton("Обновить", BtnKind.Secondary);
+            btnAccept = Theme.MakeButton("Принять", BtnKind.Primary);
+            btnIssue = Theme.MakeButton("Выдать", BtnKind.Success);
             btnRefresh.Click += (s, e) => LoadData();
             btnAccept.Click += (s, e) => ChangeStatus("принят", "создан");
             btnIssue.Click += (s, e) => ChangeStatus("выдан", "принят");
-            top.Controls.Add(btnRefresh);
-            top.Controls.Add(btnAccept);
-            top.Controls.Add(btnIssue);
-            this.Controls.Add(top);
+            toolbar.Controls.Add(btnRefresh);
+            toolbar.Controls.Add(btnAccept);
+            toolbar.Controls.Add(btnIssue);
+            this.Controls.Add(toolbar);
+
+            this.Controls.Add(Theme.MakeHeader("Панель менеджера", true));
 
             this.Load += (s, e) => LoadData();
-        }
-
-        private static Button MakeButton(string text)
-        {
-            return new Button
-            {
-                Text = text,
-                Width = 130,
-                Height = 36,
-                FlatStyle = FlatStyle.Flat,
-                BackColor = Color.FromArgb(45, 45, 48),
-                ForeColor = Color.White
-            };
         }
 
         private void LoadData()
@@ -73,7 +73,7 @@ namespace RentalApp
             try
             {
                 const string sql =
-                    "SELECT o.id, u.login AS \"Клиент\", a.title AS \"Аккаунт\", " +
+                    "SELECT o.id, u.login AS \"Клиент\", a.login AS \"Аккаунт\", " +
                     "       o.start_date AS \"Начало\", o.end_date AS \"Конец\", " +
                     "       o.total_price AS \"Сумма\", s.name AS \"Статус\" " +
                     "FROM orders o " +
@@ -81,7 +81,7 @@ namespace RentalApp
                     "JOIN account a       ON a.id = o.account_id " +
                     "JOIN order_status s  ON s.id = o.order_status_id " +
                     "WHERE s.name IN ('создан', 'принят') " +
-                    "ORDER BY o.id";
+                    "ORDER BY CASE WHEN s.name = 'создан' THEN 0 ELSE 1 END, o.id";
 
                 var dt = new DataTable();
                 using (var conn = new NpgsqlConnection(ConnStr))
@@ -95,10 +95,18 @@ namespace RentalApp
                 dgv.DataSource = dt;
                 if (dgv.Columns["id"] != null)
                     dgv.Columns["id"].Visible = false;
+
+                if (dgv.Columns["Начало"] != null) dgv.Columns["Начало"].DefaultCellStyle.Format = "dd.MM.yyyy";
+                if (dgv.Columns["Конец"] != null) dgv.Columns["Конец"].DefaultCellStyle.Format = "dd.MM.yyyy";
+                if (dgv.Columns["Сумма"] != null)
+                {
+                    dgv.Columns["Сумма"].DefaultCellStyle.Format = "N2";
+                    dgv.Columns["Сумма"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                Theme.Error(ex.Message);
             }
         }
 
@@ -107,7 +115,8 @@ namespace RentalApp
         {
             if (dgv.CurrentRow == null)
             {
-                MessageBox.Show("Выберите заказ."); return;
+                Theme.Warn("Выберите заказ.");
+                return;
             }
 
             try
@@ -132,13 +141,13 @@ namespace RentalApp
                 }
 
                 if (rows == 0)
-                    MessageBox.Show("Заказ должен иметь статус «" + requiredStatus + "».");
+                    Theme.Warn("Заказ должен иметь статус «" + requiredStatus + "».");
 
                 LoadData();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                Theme.Error(ex.Message);
             }
         }
     }

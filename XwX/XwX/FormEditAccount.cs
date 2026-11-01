@@ -5,7 +5,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using Npgsql;
 
-namespace RentalApp
+namespace GameAccountRental
 {
     public class FormEditAccount : Form
     {
@@ -35,92 +35,100 @@ namespace RentalApp
             this.MinimumSize = new Size(800, 600);
             this.Padding = new Padding(20);
             this.Text = accountId.HasValue ? "Редактирование аккаунта" : "Новый аккаунт";
+            Theme.Apply(this);
+
+            var host = new Panel { Dock = DockStyle.Fill, BackColor = Theme.Bg };
+            this.Controls.Add(host);
+            this.Controls.Add(Theme.MakeHeader(this.Text, false));
+
+            // Карточка тянется по высоте, ширина ограничена
+            var card = Theme.MakeCard(640);
+            host.Controls.Add(card);
+            Action placeCard = () =>
+            {
+                card.Width = Math.Max(300, Math.Min(640, host.ClientSize.Width - 48));
+                card.Height = Math.Max(300, host.ClientSize.Height - 48);
+                card.Left = Math.Max(0, (host.ClientSize.Width - card.Width) / 2);
+                card.Top = 24;
+            };
+            host.Resize += (s, e) => placeCard();
+            this.Load += (s, e) => placeCard();
+            placeCard();
 
             var table = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
-                ColumnCount = 2,
-                Padding = new Padding(10)
+                ColumnCount = 2
             };
             table.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
 
-            txtId = new TextBox { Dock = DockStyle.Fill, ReadOnly = true };
-            txtAccLogin = new TextBox { Dock = DockStyle.Fill };
-            txtAccPassword = new TextBox { Dock = DockStyle.Fill };
+            txtId = new TextBox { ReadOnly = true };
+            txtAccLogin = new TextBox();
+            txtAccPassword = new TextBox();
             numPrice = new NumericUpDown
             {
-                Dock = DockStyle.Fill,
                 DecimalPlaces = 2,
                 Minimum = 0,
                 Maximum = 1000000,
                 Increment = 10
             };
-            cmbStatus = new ComboBox { Dock = DockStyle.Fill, DropDownStyle = ComboBoxStyle.DropDownList };
-            cmbPlatform = new ComboBox { Dock = DockStyle.Fill, DropDownStyle = ComboBoxStyle.DropDownList };
+            cmbStatus = new ComboBox();
+            cmbPlatform = new ComboBox();
             checkedListGames = new CheckedListBox
             {
-                Dock = DockStyle.Fill,
                 CheckOnClick = true,
                 IntegralHeight = false
             };
             checkedListGames.ItemCheck += CheckedListGames_ItemCheck;
 
-            AddRow(table, "ID:", txtId);
-            AddRow(table, "Логин аккаунта:", txtAccLogin);
-            AddRow(table, "Пароль аккаунта:", txtAccPassword);
-            AddRow(table, "Цена за сутки:", numPrice);
-            AddRow(table, "Статус:", cmbStatus);
-            AddRow(table, "Платформа:", cmbPlatform);
+            Theme.StyleInput(txtId);
+            txtId.BackColor = Theme.Bg;      // ID нельзя менять — «приглушаем»
+            txtId.ForeColor = Theme.Muted;
+            Theme.StyleInput(txtAccLogin);
+            Theme.StyleInput(txtAccPassword);
+            Theme.StyleNumeric(numPrice);
+            Theme.StyleCombo(cmbStatus);
+            Theme.StyleCombo(cmbPlatform);
+            Theme.StyleCheckedList(checkedListGames);
+
+            Theme.AddRow(table, "ID", txtId);
+            Theme.AddRow(table, "Логин аккаунта", txtAccLogin);
+            Theme.AddRow(table, "Пароль аккаунта", txtAccPassword);
+            Theme.AddRow(table, "Цена за сутки", numPrice);
+            Theme.AddRow(table, "Статус", cmbStatus);
+            Theme.AddRow(table, "Платформа", cmbPlatform);
 
             // Список игр занимает всё оставшееся место
-            var lblGames = new Label
-            {
-                Text = "Игры:",
-                AutoSize = true,
-                Anchor = AnchorStyles.Top | AnchorStyles.Left,
-                Margin = new Padding(3, 10, 10, 10)
-            };
-            checkedListGames.Margin = new Padding(3, 8, 3, 8);
-            table.RowStyles.Clear();
-            for (int i = 0; i < table.RowCount; i++)
-                table.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-            table.Controls.Add(lblGames, 0, table.RowCount);
-            table.Controls.Add(checkedListGames, 1, table.RowCount);
-            table.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            table.RowCount++;
+            var lblGames = Theme.MakeCaption("Игры");
+            lblGames.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+            lblGames.Margin = new Padding(3, 12, 14, 10);
+            checkedListGames.Dock = DockStyle.Fill;
+            checkedListGames.Margin = new Padding(3, 6, 3, 6);
 
-            btnSave = new Button
-            {
-                Text = "Сохранить",
-                Height = 42,
-                Dock = DockStyle.Bottom,
-                FlatStyle = FlatStyle.Flat,
-                BackColor = Color.FromArgb(45, 45, 48),
-                ForeColor = Color.White
-            };
-            btnSave.Click += BtnSave_Click; this.Controls.Add(table);
-            this.Controls.Add(btnSave);
+            int gamesRow = table.RowCount;
+            table.Controls.Add(lblGames, 0, gamesRow);
+            table.Controls.Add(checkedListGames, 1, gamesRow);
+            table.RowCount = gamesRow + 1;
+
+            table.RowStyles.Clear();
+            for (int i = 0; i < gamesRow; i++)
+                table.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            table.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+
+            btnSave = Theme.MakeButton("Сохранить", BtnKind.Primary);
+            btnSave.Height = 44;
+            btnSave.Dock = DockStyle.Bottom;
+            btnSave.Click += BtnSave_Click;
+
+            // Fill -> Bottom
+            card.Controls.Add(table);
+            card.Controls.Add(btnSave);
 
             LoadLookups();
             if (accountId.HasValue) LoadAccount(accountId.Value);
             cmbPlatform.SelectedIndexChanged += (s, e) => RefreshGames();
             RefreshGames();
-        }
-
-        private static void AddRow(TableLayoutPanel t, string caption, Control c)
-        {
-            var lbl = new Label
-            {
-                Text = caption,
-                AutoSize = true,
-                Anchor = AnchorStyles.Left,
-                Margin = new Padding(3, 10, 10, 10)
-            };
-            c.Margin = new Padding(3, 8, 3, 8);
-            t.Controls.Add(lbl, 0, t.RowCount);
-            t.Controls.Add(c, 1, t.RowCount);
-            t.RowCount++;
         }
 
         private static DataTable Query(string sql)
@@ -146,9 +154,9 @@ namespace RentalApp
                 cmbPlatform.DisplayMember = "name";
                 cmbPlatform.ValueMember = "id";
 
-                allGames = Query("SELECT id, name, platform_id FROM game ORDER BY name");
+                allGames = Query("SELECT id, title AS name, platform_id FROM game ORDER BY title");
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Theme.Error(ex.Message); }
         }
 
         private void LoadAccount(int id)
@@ -168,7 +176,7 @@ namespace RentalApp
                         {
                             if (!r.Read())
                             {
-                                MessageBox.Show("Аккаунт не найден.");
+                                Theme.Warn("Аккаунт не найден.");
                                 return;
                             }
                             txtId.Text = r["id"].ToString();
@@ -190,7 +198,7 @@ namespace RentalApp
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Theme.Error(ex.Message); }
         }
 
         // ---------- фильтрация игр по платформе ----------
@@ -229,12 +237,12 @@ namespace RentalApp
             string login = txtAccLogin.Text.Trim();
             if (login.Length == 0 || txtAccPassword.Text.Length == 0)
             {
-                MessageBox.Show("Заполните логин и пароль аккаунта.");
+                Theme.Warn("Заполните логин и пароль аккаунта.");
                 return;
             }
             if (cmbStatus.SelectedValue == null || cmbPlatform.SelectedValue == null)
             {
-                MessageBox.Show("Выберите статус и платформу.");
+                Theme.Warn("Выберите статус и платформу.");
                 return;
             }
 
@@ -282,7 +290,8 @@ namespace RentalApp
                             using (var cmd = new NpgsqlCommand(
                                 "INSERT INTO account_game (account_id, game_id) VALUES (@aid, @gid)", conn, tx))
                             {
-                                cmd.Parameters.Add(new NpgsqlParameter("@aid", accountId)); cmd.Parameters.Add(new NpgsqlParameter("@gid", item.Id));
+                                cmd.Parameters.Add(new NpgsqlParameter("@aid", accountId));
+                                cmd.Parameters.Add(new NpgsqlParameter("@gid", item.Id));
                                 cmd.ExecuteNonQuery();
                             }
                         }
@@ -294,7 +303,7 @@ namespace RentalApp
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Theme.Error(ex.Message); }
         }
     }
 }

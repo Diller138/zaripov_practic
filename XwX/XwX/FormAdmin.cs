@@ -6,13 +6,13 @@ using System.Windows.Forms;
 using Npgsql;
 using OfficeOpenXml; // EPPlus 4.5.3.3
 
-namespace RentalApp
+namespace GameAccountRental
 {
     public class FormAdmin : Form
     {
         private const string ConnStr = "Host=localhost;Port=5432;Database=MyDataBase;Username=user1;Password=12345678";
 
-        private TabControl tabs;
+        private DarkTabControl tabs;
         private DataGridView dgvGames, dgvAccounts;
         private Button btnAddGame, btnEditGame, btnDeleteGame;
         private Button btnAddAccount, btnEditAccount, btnDeleteAccount;
@@ -24,30 +24,34 @@ namespace RentalApp
             this.StartPosition = FormStartPosition.CenterScreen;
             this.MinimumSize = new Size(800, 600);
             this.Text = "Панель администратора";
+            Theme.Apply(this);
 
-            // Fill добавляем первым, затем элементы Bottom
-            tabs = new TabControl { Dock = DockStyle.Fill };
+            // Fill -> Bottom -> Top
+            tabs = new DarkTabControl { Dock = DockStyle.Fill };
             this.Controls.Add(tabs);
 
-            btnLogout = MakeButton("Выйти");
-            btnLogout.Dock = DockStyle.Bottom;
-            btnLogout.Height = 42;
-            btnLogout.Click += (s, e) => this.Close();
-            this.Controls.Add(btnLogout);
-
-            btnExportExcel = MakeButton("Экспорт заказов в Excel");
-            btnExportExcel.Dock = DockStyle.Bottom;
-            btnExportExcel.Height = 42;
+            var bottom = new Panel { Dock = DockStyle.Bottom, Height = 70, Padding = new Padding(16, 10, 16, 16), BackColor = Theme.Bg };
+            btnExportExcel = Theme.MakeButton("Экспорт заказов в Excel", BtnKind.Success);
+            btnExportExcel.Dock = DockStyle.Left;
+            btnExportExcel.Width = 260;
             btnExportExcel.Click += BtnExportExcel_Click;
-            this.Controls.Add(btnExportExcel);
+            btnLogout = Theme.MakeButton("Выйти", BtnKind.Danger);
+            btnLogout.Dock = DockStyle.Right;
+            btnLogout.Width = 160;
+            btnLogout.Click += (s, e) => this.Close();
+            bottom.Controls.Add(btnExportExcel);
+            bottom.Controls.Add(btnLogout);
+            this.Controls.Add(bottom);
+
+            this.Controls.Add(Theme.MakeHeader("Панель администратора", true));
 
             // Вкладка «Игры»
-            var tabGames = new TabPage("Игры") { Padding = new Padding(8) };
+            var tabGames = MakeTab("Игры");
             dgvGames = MakeGrid();
             tabGames.Controls.Add(dgvGames);
-            btnAddGame = MakeButton("Добавить");
-            btnEditGame = MakeButton("Изменить");
-            btnDeleteGame = MakeButton("Удалить");
+            btnAddGame = Theme.MakeButton("Добавить", BtnKind.Primary);
+            btnEditGame = Theme.MakeButton("Изменить", BtnKind.Secondary);
+            btnDeleteGame = Theme.MakeButton("Удалить", BtnKind.Danger);
             btnAddGame.Click += (s, e) => OpenGameEditor(null);
             btnEditGame.Click += (s, e) =>
             {
@@ -59,12 +63,12 @@ namespace RentalApp
             tabs.TabPages.Add(tabGames);
 
             // Вкладка «Аккаунты»
-            var tabAccounts = new TabPage("Аккаунты") { Padding = new Padding(8) };
+            var tabAccounts = MakeTab("Аккаунты");
             dgvAccounts = MakeGrid();
             tabAccounts.Controls.Add(dgvAccounts);
-            btnAddAccount = MakeButton("Добавить");
-            btnEditAccount = MakeButton("Изменить");
-            btnDeleteAccount = MakeButton("Удалить");
+            btnAddAccount = Theme.MakeButton("Добавить", BtnKind.Primary);
+            btnEditAccount = Theme.MakeButton("Изменить", BtnKind.Secondary);
+            btnDeleteAccount = Theme.MakeButton("Удалить", BtnKind.Danger);
             btnAddAccount.Click += (s, e) => OpenAccountEditor(null);
             btnEditAccount.Click += (s, e) =>
             {
@@ -80,37 +84,43 @@ namespace RentalApp
 
         // ---------- helpers ----------
 
-        private static Button MakeButton(string text)
+        private static TabPage MakeTab(string title)
         {
-            return new Button
+            return new TabPage(title)
             {
-                Text = text,
-                Width = 140,
-                Height = 36,
-                FlatStyle = FlatStyle.Flat,
-                BackColor = Color.FromArgb(45, 45, 48),
-                ForeColor = Color.White
+                UseVisualStyleBackColor = false,
+                BackColor = Theme.Bg,
+                ForeColor = Theme.Text,
+                Padding = new Padding(16, 8, 16, 8)
             };
         }
 
         private static DataGridView MakeGrid()
         {
-            return new DataGridView
+            var g = new DataGridView
             {
                 Dock = DockStyle.Fill,
                 ReadOnly = true,
                 AllowUserToAddRows = false,
                 AllowUserToDeleteRows = false,
+                AllowUserToResizeRows = false,
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 MultiSelect = false,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                BackgroundColor = Color.White
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
             };
+            Theme.StyleGrid(g);
+            return g;
         }
 
         private static FlowLayoutPanel MakeButtonPanel(params Button[] buttons)
         {
-            var p = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 54, Padding = new Padding(4) };
+            var p = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Top,
+                Height = 56,
+                Padding = new Padding(0, 6, 0, 6),
+                BackColor = Theme.Bg
+            };
             p.Controls.AddRange(buttons);
             return p;
         }
@@ -119,7 +129,7 @@ namespace RentalApp
         {
             if (dgv.CurrentRow == null)
             {
-                MessageBox.Show("Выберите запись в таблице.");
+                Theme.Warn("Выберите запись в таблице.");
                 return null;
             }
             return Convert.ToInt32(dgv.CurrentRow.Cells["id"].Value);
@@ -155,7 +165,7 @@ namespace RentalApp
                     "SELECT g.id, g.title AS \"Название\", g.genre AS \"Жанр\", p.name AS \"Платформа\" " +
                     "FROM game g JOIN platform p ON p.id = g.platform_id ORDER BY g.id"));
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Theme.Error(ex.Message); }
         }
 
         private void LoadAccounts()
@@ -168,8 +178,15 @@ namespace RentalApp
                     "FROM account a " +
                     "JOIN platform p       ON p.id = a.platform_id " +
                     "JOIN account_status s ON s.id = a.status_id ORDER BY a.id"));
+
+                var price = dgvAccounts.Columns["Цена/сутки"];
+                if (price != null)
+                {
+                    price.DefaultCellStyle.Format = "N2";
+                    price.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+                }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Theme.Error(ex.Message); }
         }
 
         // ---------- формы редактирования ----------
@@ -213,14 +230,15 @@ namespace RentalApp
                         }
                         using (var cmd = new NpgsqlCommand("DELETE FROM game WHERE id = @id", conn, tx))
                         {
-                            cmd.Parameters.Add(new NpgsqlParameter("@id", id.Value)); cmd.ExecuteNonQuery();
+                            cmd.Parameters.Add(new NpgsqlParameter("@id", id.Value));
+                            cmd.ExecuteNonQuery();
                         }
                         tx.Commit();
                     }
                 }
                 LoadGames();
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Theme.Error(ex.Message); }
         }
 
         private void BtnDeleteAccount_Click(object sender, EventArgs e)
@@ -254,9 +272,9 @@ namespace RentalApp
             }
             catch (PostgresException ex) when (ex.SqlState == "23503")
             {
-                MessageBox.Show("Нельзя удалить: на аккаунт ссылаются заказы.");
+                Theme.Error("Нельзя удалить: на аккаунт ссылаются заказы.");
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Theme.Error(ex.Message); }
         }
 
         // ---------- экспорт ----------
@@ -275,6 +293,9 @@ namespace RentalApp
                     "JOIN order_status s ON s.id = o.order_status_id " +
                     "LEFT JOIN users m   ON m.id = o.manager_id " +
                     "ORDER BY o.id");
+
+                // Указываем, что используем EPPlus для личных/учебных целей
+                ExcelPackage.License.SetNonCommercialPersonal("Student");
 
                 using (var dlg = new SaveFileDialog
                 {
@@ -300,7 +321,7 @@ namespace RentalApp
                     Process.Start(new ProcessStartInfo(dlg.FileName) { UseShellExecute = true });
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message); }
+            catch (Exception ex) { Theme.Error(ex.Message); }
         }
     }
 }

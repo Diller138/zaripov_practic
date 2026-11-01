@@ -1,23 +1,45 @@
-﻿using GameAccountRental;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System;
 using System.Windows.Forms;
 
-namespace XwX
+namespace GameAccountRental // Убедись, что namespace совпадает с твоим проектом!
 {
     internal static class Program
     {
-        /// <summary>
-        /// Главная точка входа для приложения.
-        /// </summary>
         [STAThread]
         static void Main()
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new FormLogin());
+
+            // Главный цикл приложения
+            while (true)
+            {
+                using (var loginForm = new FormLogin())
+                {
+                    // Если пользователь зашел успешно
+                    if (loginForm.ShowDialog() == DialogResult.OK)
+                    {
+                        // Открываем форму в зависимости от роли
+                        if (Session.CurrentUser.RoleName == "admin")
+                        {
+                            Application.Run(new FormAdmin());
+                        }
+                        else if (Session.CurrentUser.RoleName == "manager")
+                        {
+                            Application.Run(new FormManager());
+                        }
+                        else
+                        {
+                            Application.Run(new FormMain());
+                        }
+                    }
+                    else
+                    {
+                        // Если нажали крестик на форме логина — выходим из программы
+                        break;
+                    }
+                }
+            }
         }
     }
 }

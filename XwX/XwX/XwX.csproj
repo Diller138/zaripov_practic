@@ -48,6 +48,7 @@
     <Reference Include="Microsoft.IO.RecyclableMemoryStream, Version=3.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.IO.RecyclableMemoryStream.3.0.1\lib\netstandard2.0\Microsoft.IO.RecyclableMemoryStream.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="Npgsql, Version=4.1.14.0, Culture=neutral, PublicKeyToken=5d8b90d52f46fda7, processorArchitecture=MSIL">
       <HintPath>..\packages\Npgsql.4.1.14\lib\net461\Npgsql.dll</HintPath>
     </Reference>
@@ -103,26 +104,14 @@
     <Compile Include="FormAdmin.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FormAdmin.Designer.cs">
-      <DependentUpon>FormAdmin.cs</DependentUpon>
-    </Compile>
     <Compile Include="FormEditAccount.cs">
       <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="FormEditAccount.Designer.cs">
-      <DependentUpon>FormEditAccount.cs</DependentUpon>
     </Compile>
     <Compile Include="FormEditGame.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FormEditGame.Designer.cs">
-      <DependentUpon>FormEditGame.cs</DependentUpon>
-    </Compile>
     <Compile Include="FormLogin.cs">
       <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="FormLogin.Designer.cs">
-      <DependentUpon>FormLogin.cs</DependentUpon>
     </Compile>
     <Compile Include="FormMain.cs">
       <SubType>Form</SubType>
@@ -130,14 +119,12 @@
     <Compile Include="FormManager.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FormRegiser.cs">
+    <Compile Include="FormRegister.cs">
       <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="FormRegiser.Designer.cs">
-      <DependentUpon>FormRegiser.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Theme.cs" />
     <EmbeddedResource Include="FormAdmin.resx">
       <DependentUpon>FormAdmin.cs</DependentUpon>
     </EmbeddedResource>
