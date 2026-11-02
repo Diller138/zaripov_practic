@@ -1,7 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Npgsql;
 using OfficeOpenXml; // EPPlus 4.5.3.3
@@ -12,11 +17,20 @@ namespace GameAccountRental
     {
         private const string ConnStr = "Host=localhost;Port=5432;Database=MyDataBase;Username=user1;Password=12345678";
 
-        private DarkTabControl tabs;
-        private DataGridView dgvGames, dgvAccounts;
+        private const string UsersSql =
+            "SELECT u.id, u.login AS \"Логин\", u.email AS \"Email\", r.name AS \"Роль\", " +
+            "       CASE WHEN u.is_active THEN 'Активен' ELSE 'Заблокирован' END AS \"Статус\" " +
+            "FROM users u LEFT JOIN role r ON r.id = u.role_id ORDER BY u.id";
+
+        private ThemedTabControl tabs;
+        private DataGridView dgvGames, dgvAccounts, dgvUsers;
         private Button btnAddGame, btnEditGame, btnDeleteGame;
         private Button btnAddAccount, btnEditAccount, btnDeleteAccount;
+        private Button btnToggleUser;
         private Button btnExportExcel, btnLogout;
+        private CheckBox chkDark;
+
+        private int _gamesVersion;   // чтобы устаревшие загрузки миниатюр не писали в новую таблицу
 
         public FormAdmin()
         {
@@ -24,30 +38,51 @@ namespace GameAccountRental
             this.StartPosition = FormStartPosition.CenterScreen;
             this.MinimumSize = new Size(800, 600);
             this.Text = "Панель администратора";
-            Theme.Apply(this);
 
             // Fill -> Bottom -> Top
-            tabs = new DarkTabControl { Dock = DockStyle.Fill };
+            tabs = new ThemedTabControl { Dock = DockStyle.Fill };
             this.Controls.Add(tabs);
 
-            var bottom = new Panel { Dock = DockStyle.Bottom, Height = 70, Padding = new Padding(16, 10, 16, 16), BackColor = Theme.Bg };
+            var bottom = new Panel { Dock = DockStyle.Bottom, Height = 70, Padding = new Padding(16, 10, 16, 16) };
+
+            chkDark = new CheckBox
+            {
+                Text = "Темная тема",
+                Dock = DockStyle.Fill,
+                AutoSize = false,
+                TextAlign = ContentAlignment.MiddleLeft,
+                Padding = new Padding(20, 0, 0, 0),
+                Cursor = Cursors.Hand,
+                Checked = Theme.IsDarkMode
+            };
+            chkDark.CheckedChanged += (s, e) => Theme.SetDark(chkDark.Checked);
+
             btnExportExcel = Theme.MakeButton("Экспорт заказов в Excel", BtnKind.Success);
             btnExportExcel.Dock = DockStyle.Left;
             btnExportExcel.Width = 260;
             btnExportExcel.Click += BtnExportExcel_Click;
+
             btnLogout = Theme.MakeButton("Выйти", BtnKind.Danger);
             btnLogout.Dock = DockStyle.Right;
             btnLogout.Width = 160;
             btnLogout.Click += (s, e) => this.Close();
+
+            bottom.Controls.Add(chkDark);
             bottom.Controls.Add(btnExportExcel);
             bottom.Controls.Add(btnLogout);
             this.Controls.Add(bottom);
 
             this.Controls.Add(Theme.MakeHeader("Панель администратора", true));
 
-            // Вкладка «Игры»
+            // ---------- Вкладка «Игры» ----------
             var tabGames = MakeTab("Игры");
             dgvGames = MakeGrid();
+            dgvGames.RowTemplate.Height = 56;                       // место под миниатюру
+            dgvGames.CellDoubleClick += (s, e) =>
+            {
+                if (e.RowIndex >= 0)
+                    OpenGameEditor(Convert.ToInt32(dgvGames.Rows[e.RowIndex].Cells["id"].Value));
+            };
             tabGames.Controls.Add(dgvGames);
             btnAddGame = Theme.MakeButton("Добавить", BtnKind.Primary);
             btnEditGame = Theme.MakeButton("Изменить", BtnKind.Secondary);
@@ -62,9 +97,14 @@ namespace GameAccountRental
             tabGames.Controls.Add(MakeButtonPanel(btnAddGame, btnEditGame, btnDeleteGame));
             tabs.TabPages.Add(tabGames);
 
-            // Вкладка «Аккаунты»
+            // ---------- Вкладка «Аккаунты» ----------
             var tabAccounts = MakeTab("Аккаунты");
             dgvAccounts = MakeGrid();
+            dgvAccounts.CellDoubleClick += (s, e) =>
+            {
+                if (e.RowIndex >= 0)
+                    OpenAccountEditor(Convert.ToInt32(dgvAccounts.Rows[e.RowIndex].Cells["id"].Value));
+            };
             tabAccounts.Controls.Add(dgvAccounts);
             btnAddAccount = Theme.MakeButton("Добавить", BtnKind.Primary);
             btnEditAccount = Theme.MakeButton("Изменить", BtnKind.Secondary);
@@ -79,7 +119,19 @@ namespace GameAccountRental
             tabAccounts.Controls.Add(MakeButtonPanel(btnAddAccount, btnEditAccount, btnDeleteAccount));
             tabs.TabPages.Add(tabAccounts);
 
-            this.Load += (s, e) => { LoadGames(); LoadAccounts(); };
+            // ---------- Вкладка «Пользователи» ----------
+            var tabUsers = MakeTab("Пользователи");
+            dgvUsers = MakeGrid();
+            dgvUsers.SelectionChanged += (s, e) => UpdateToggleButton();
+            tabUsers.Controls.Add(dgvUsers);
+            btnToggleUser = Theme.MakeButton("Заблокировать", BtnKind.Danger);
+            btnToggleUser.Width = 200;
+            btnToggleUser.Click += BtnToggleUser_Click;
+            tabUsers.Controls.Add(MakeButtonPanel(btnToggleUser));
+            tabs.TabPages.Add(tabUsers);
+
+            Theme.Apply(this);
+            this.Load += (s, e) => { LoadGames(); LoadAccounts(); LoadUsers(); };
         }
 
         // ---------- helpers ----------
@@ -118,8 +170,7 @@ namespace GameAccountRental
             {
                 Dock = DockStyle.Top,
                 Height = 56,
-                Padding = new Padding(0, 6, 0, 6),
-                BackColor = Theme.Bg
+                Padding = new Padding(0, 6, 0, 6)
             };
             p.Controls.AddRange(buttons);
             return p;
@@ -155,18 +206,97 @@ namespace GameAccountRental
                 dgv.Columns["id"].Visible = false;
         }
 
-        // ---------- загрузка ----------
+        // ---------- загрузка: игры (с миниатюрами) ----------
+
+        private static readonly Dictionary<string, Image> ThumbCache = new Dictionary<string, Image>();
+
+        private static async Task<Image> GetThumbAsync(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url)) return Theme.Placeholder(96, 54);
+
+            Image cached;
+            if (ThumbCache.TryGetValue(url, out cached)) return cached;
+
+            try
+            {
+                using (var wc = new WebClient())
+                {
+                    byte[] data = await wc.DownloadDataTaskAsync(url);
+                    using (var ms = new MemoryStream(data))
+                    using (var src = Image.FromStream(ms))
+                    {
+                        var thumb = new Bitmap(src, new Size(96, 54));
+                        ThumbCache[url] = thumb;
+                        return thumb;
+                    }
+                }
+            }
+            catch
+            {
+                return Theme.Placeholder(96, 54);
+            }
+        }
 
         private void LoadGames()
         {
             try
             {
-                Bind(dgvGames, Query(
-                    "SELECT g.id, g.title AS \"Название\", g.genre AS \"Жанр\", p.name AS \"Платформа\" " +
-                    "FROM game g JOIN platform p ON p.id = g.platform_id ORDER BY g.id"));
+                DataTable dt = Query(
+                    "SELECT g.id, g.title AS \"Название\", g.genre AS \"Жанр\", p.name AS \"Платформа\", g.cover_url " +
+                    "FROM game g JOIN platform p ON p.id = g.platform_id ORDER BY g.id");
+                Bind(dgvGames, dt);
+
+                if (dgvGames.Columns["cover_url"] != null)
+                    dgvGames.Columns["cover_url"].Visible = false;
+
+                if (dgvGames.Columns["Обложка"] == null)
+                {
+                    dgvGames.Columns.Add(new DataGridViewImageColumn
+                    {
+                        Name = "Обложка",
+                        HeaderText = "Обложка",
+                        ImageLayout = DataGridViewImageCellLayout.Zoom,
+                        AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
+                        Width = 110,
+                        SortMode = DataGridViewColumnSortMode.NotSortable,
+                        ReadOnly = true
+                    });
+                }
+                dgvGames.Columns["Обложка"].DisplayIndex = 0;
+
+                FillCovers(++_gamesVersion);
             }
             catch (Exception ex) { Theme.Error(ex.Message); }
         }
+
+        private async void FillCovers(int version)
+        {
+            try
+            {
+                List<DataGridViewRow> rows = dgvGames.Rows.Cast<DataGridViewRow>().ToList();
+
+                // Сначала ставим заглушки, затем качаем обложки параллельно
+                foreach (var r in rows)
+                    r.Cells["Обложка"].Value = Theme.Placeholder(96, 54);
+
+                List<Task<Image>> tasks = rows
+                    .Select(r => GetThumbAsync(Convert.ToString(r.Cells["cover_url"].Value)))
+                    .ToList();
+
+                for (int i = 0; i < rows.Count; i++)
+                {
+                    Image img = await tasks[i];
+                    if (version != _gamesVersion || rows[i].DataGridView == null) return;
+                    rows[i].Cells["Обложка"].Value = img;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);   // обложки — не критично
+            }
+        }
+
+        // ---------- загрузка: аккаунты и пользователи ----------
 
         private void LoadAccounts()
         {
@@ -189,6 +319,23 @@ namespace GameAccountRental
             catch (Exception ex) { Theme.Error(ex.Message); }
         }
 
+        private void LoadUsers()
+        {
+            try
+            {
+                Bind(dgvUsers, Query(UsersSql));
+                UpdateToggleButton();
+            }
+            catch (Exception ex) { Theme.Error(ex.Message); }
+        }
+
+        private void UpdateToggleButton()
+        {
+            if (btnToggleUser == null || dgvUsers.CurrentRow == null || dgvUsers.Columns["Статус"] == null) return;
+            bool active = Convert.ToString(dgvUsers.CurrentRow.Cells["Статус"].Value) == "Активен";
+            btnToggleUser.Text = active ? "Заблокировать" : "Разблокировать";
+        }
+
         // ---------- формы редактирования ----------
 
         private void OpenGameEditor(int? id)
@@ -205,6 +352,41 @@ namespace GameAccountRental
             {
                 if (f.ShowDialog(this) == DialogResult.OK) LoadAccounts();
             }
+        }
+
+        // ---------- блокировка пользователей ----------
+
+        private void BtnToggleUser_Click(object sender, EventArgs e)
+        {
+            int? id = GetSelectedId(dgvUsers);
+            if (!id.HasValue) return;
+
+            if (Session.CurrentUser != null && id.Value == Convert.ToInt32(Session.CurrentUser.Id))
+            {
+                Theme.Warn("Нельзя заблокировать самого себя.");
+                return;
+            }
+
+            string login = Convert.ToString(dgvUsers.CurrentRow.Cells["Логин"].Value);
+            bool isActive = Convert.ToString(dgvUsers.CurrentRow.Cells["Статус"].Value) == "Активен";
+            string action = isActive ? "заблокировать" : "разблокировать";
+
+            if (MessageBox.Show("Вы действительно хотите " + action + " пользователя «" + login + "»?",
+                    "Подтверждение", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
+
+            try
+            {
+                using (var conn = new NpgsqlConnection(ConnStr))
+                using (var cmd = new NpgsqlCommand("UPDATE users SET is_active = @active WHERE id = @id", conn))
+                {
+                    cmd.Parameters.Add(new NpgsqlParameter("@active", !isActive));
+                    cmd.Parameters.Add(new NpgsqlParameter("@id", id.Value));
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+                LoadUsers();
+            }
+            catch (Exception ex) { Theme.Error(ex.Message); }
         }
 
         // ---------- удаление ----------
@@ -294,9 +476,6 @@ namespace GameAccountRental
                     "LEFT JOIN users m   ON m.id = o.manager_id " +
                     "ORDER BY o.id");
 
-                // Указываем, что используем EPPlus для личных/учебных целей
-                ExcelPackage.License.SetNonCommercialPersonal("Student");
-
                 using (var dlg = new SaveFileDialog
                 {
                     Filter = "Excel (*.xlsx)|*.xlsx",
@@ -305,8 +484,8 @@ namespace GameAccountRental
                 {
                     if (dlg.ShowDialog(this) != DialogResult.OK) return;
 
-                    // Для EPPlus 5+ раскомментируйте:
-                    // ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+                    // Указываем, что используем EPPlus для личных/учебных целей
+                    ExcelPackage.License.SetNonCommercialPersonal("Student");
 
                     using (var pkg = new ExcelPackage())
                     {
@@ -315,7 +494,7 @@ namespace GameAccountRental
                         ws.Cells[1, 1, 1, dt.Columns.Count].Style.Font.Bold = true;
                         ws.Cells[ws.Dimension.Address].AutoFitColumns();
                         ws.Cells["D:E"].Style.Numberformat.Format = "dd.mm.yyyy";
-                        pkg.SaveAs(new System.IO.FileInfo(dlg.FileName));
+                        pkg.SaveAs(new FileInfo(dlg.FileName));
                     }
 
                     Process.Start(new ProcessStartInfo(dlg.FileName) { UseShellExecute = true });

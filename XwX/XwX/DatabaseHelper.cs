@@ -18,6 +18,7 @@ namespace GameAccountRental
         public int RoleId { get; set; }
         public string RoleName { get; set; }   // admin / manager / user
         public DateTime CreatedAt { get; set; }
+        public bool IsActive { get; set; }     // false = пользователь заблокирован
     }
 
     /// <summary>
@@ -65,7 +66,7 @@ namespace GameAccountRental
         {
             const string sql = @"
                 SELECT u.id, u.login, u.password_hash, u.email,
-                       u.role_id, r.name AS role_name, u.created_at
+                       u.role_id, r.name AS role_name, u.created_at, u.is_active
                 FROM users u
                 JOIN role r ON r.id = u.role_id
                 WHERE u.login = @login";
@@ -94,7 +95,8 @@ namespace GameAccountRental
                                 : reader.GetString(reader.GetOrdinal("email")),
                             RoleId = reader.GetInt32(reader.GetOrdinal("role_id")),
                             RoleName = reader.GetString(reader.GetOrdinal("role_name")),
-                            CreatedAt = reader.GetDateTime(reader.GetOrdinal("created_at"))
+                            CreatedAt = reader.GetDateTime(reader.GetOrdinal("created_at")),
+                            IsActive = reader.GetBoolean(reader.GetOrdinal("is_active"))
                         };
                     }
                 }

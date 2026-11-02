@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Npgsql;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
-using Npgsql;
 
 namespace GameAccountRental
 {
@@ -11,11 +12,11 @@ namespace GameAccountRental
     {
         private const string ConnStr = "Host=localhost;Port=5432;Database=MyDataBase;Username=user1;Password=12345678";
 
-        private TextBox txtId, txtAccLogin, txtAccPassword;
+        private TextBox txtId, txtAccLogin, txtAccPassword, txtGameSearch;
         private NumericUpDown numPrice;
         private ComboBox cmbStatus, cmbPlatform;
         private CheckedListBox checkedListGames;
-        private Button btnSave;
+        private Button btnSave, btnSelectAll, btnSelectNone;
 
         private DataTable allGames;                        // id, name, platform_id
         private readonly HashSet<int> checkedIds = new HashSet<int>();
@@ -33,23 +34,24 @@ namespace GameAccountRental
             this.Font = new Font("Segoe UI", 10f);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.MinimumSize = new Size(800, 600);
-            this.Padding = new Padding(20);
+            this.ClientSize = new Size(900, 700);
             this.Text = accountId.HasValue ? "Редактирование аккаунта" : "Новый аккаунт";
-            Theme.Apply(this);
 
-            var host = new Panel { Dock = DockStyle.Fill, BackColor = Theme.Bg };
+            var host = new Panel { Dock = DockStyle.Fill };
             this.Controls.Add(host);
             this.Controls.Add(Theme.MakeHeader(this.Text, false));
 
             // Карточка тянется по высоте, ширина ограничена
-            var card = Theme.MakeCard(640);
+            var card = Theme.MakeCard(680);
+            card.Padding = new Padding(24);
             host.Controls.Add(card);
+
             Action placeCard = () =>
             {
-                card.Width = Math.Max(300, Math.Min(640, host.ClientSize.Width - 48));
-                card.Height = Math.Max(300, host.ClientSize.Height - 48);
+                card.Width = Math.Max(300, Math.Min(680, host.ClientSize.Width - 32));
+                card.Height = Math.Max(300, host.ClientSize.Height - 32);
                 card.Left = Math.Max(0, (host.ClientSize.Width - card.Width) / 2);
-                card.Top = 24;
+                card.Top = 16;
             };
             host.Resize += (s, e) => placeCard();
             this.Load += (s, e) => placeCard();
@@ -63,7 +65,7 @@ namespace GameAccountRental
             table.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
 
-            txtId = new TextBox { ReadOnly = true };
+            txtId = new TextBox { ReadOnly = true, Enabled = false };
             txtAccLogin = new TextBox();
             txtAccPassword = new TextBox();
             numPrice = new NumericUpDown
@@ -71,26 +73,21 @@ namespace GameAccountRental
                 DecimalPlaces = 2,
                 Minimum = 0,
                 Maximum = 1000000,
-                Increment = 10
+                Increment = 10,
+                ThousandsSeparator = true,
+                TextAlign = HorizontalAlignment.Right,
+                MinimumSize = new Size(260, 0)
             };
             cmbStatus = new ComboBox();
             cmbPlatform = new ComboBox();
-            checkedListGames = new CheckedListBox
-            {
-                CheckOnClick = true,
-                IntegralHeight = false
-            };
-            checkedListGames.ItemCheck += CheckedListGames_ItemCheck;
 
             Theme.StyleInput(txtId);
-            txtId.BackColor = Theme.Bg;      // ID нельзя менять — «приглушаем»
-            txtId.ForeColor = Theme.Muted;
             Theme.StyleInput(txtAccLogin);
             Theme.StyleInput(txtAccPassword);
             Theme.StyleNumeric(numPrice);
+            numPrice.Font = new Font("Segoe UI", 12f);          // крупнее и шире поле цены
             Theme.StyleCombo(cmbStatus);
             Theme.StyleCombo(cmbPlatform);
-            Theme.StyleCheckedList(checkedListGames);
 
             Theme.AddRow(table, "ID", txtId);
             Theme.AddRow(table, "Логин аккаунта", txtAccLogin);
@@ -99,16 +96,53 @@ namespace GameAccountRental
             Theme.AddRow(table, "Статус", cmbStatus);
             Theme.AddRow(table, "Платформа", cmbPlatform);
 
-            // Список игр занимает всё оставшееся место
+            // ---- блок «Игры»: поиск + кнопки + список ----
+            checkedListGames = new CheckedListBox { CheckOnClick = true, IntegralHeight = false, Dock = DockStyle.Fill };
+            checkedListGames.ItemCheck += CheckedListGames_ItemCheck;
+            Theme.StyleCheckedList(checkedListGames);
+
+            txtGameSearch = new TextBox();
+            Theme.StyleInput(txtGameSearch);
+            Theme.SetPlaceholder(txtGameSearch, "Поиск по играм…");
+            txtGameSearch.TextChanged += (s, e) => RefreshGames();
+
+            btnSelectAll = Theme.MakeButton("Выделить все", BtnKind.Secondary);
+            btnSelectNone = Theme.MakeButton("Снять выделение", BtnKind.Secondary);
+            btnSelectAll.Click += (s, e) => SetAllChecked(true);
+            btnSelectNone.Click += (s, e) => SetAllChecked(false);
+
+            var gamesToolbar = new TableLayoutPanel
+            {
+                Dock = DockStyle.Top,
+                Height = 44,
+                ColumnCount = 3,
+                RowCount = 1
+            };
+            gamesToolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            gamesToolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130));
+            gamesToolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 160));
+            txtGameSearch.Dock = DockStyle.Fill;
+            txtGameSearch.Margin = new Padding(0, 4, 6, 4);
+            btnSelectAll.Dock = DockStyle.Fill;
+            btnSelectAll.Margin = new Padding(3, 3, 3, 3);
+            btnSelectNone.Dock = DockStyle.Fill;
+            btnSelectNone.Margin = new Padding(3, 3, 0, 3);
+            gamesToolbar.Controls.Add(txtGameSearch, 0, 0);
+            gamesToolbar.Controls.Add(btnSelectAll, 1, 0);
+            gamesToolbar.Controls.Add(btnSelectNone, 2, 0);
+
+            var gamesPanel = new Panel { Dock = DockStyle.Fill, Tag = Skin.Surface };
+            gamesPanel.Controls.Add(checkedListGames);   // Fill первым
+            gamesPanel.Controls.Add(gamesToolbar);       // затем Top
+
             var lblGames = Theme.MakeCaption("Игры");
             lblGames.Anchor = AnchorStyles.Top | AnchorStyles.Left;
-            lblGames.Margin = new Padding(3, 12, 14, 10);
-            checkedListGames.Dock = DockStyle.Fill;
-            checkedListGames.Margin = new Padding(3, 6, 3, 6);
+            lblGames.Margin = new Padding(3, 14, 14, 8);
+            gamesPanel.Margin = new Padding(3, 6, 3, 6);
 
             int gamesRow = table.RowCount;
             table.Controls.Add(lblGames, 0, gamesRow);
-            table.Controls.Add(checkedListGames, 1, gamesRow);
+            table.Controls.Add(gamesPanel, 1, gamesRow);
             table.RowCount = gamesRow + 1;
 
             table.RowStyles.Clear();
@@ -129,6 +163,8 @@ namespace GameAccountRental
             if (accountId.HasValue) LoadAccount(accountId.Value);
             cmbPlatform.SelectedIndexChanged += (s, e) => RefreshGames();
             RefreshGames();
+
+            Theme.Apply(this);
         }
 
         private static DataTable Query(string sql)
@@ -201,25 +237,35 @@ namespace GameAccountRental
             catch (Exception ex) { Theme.Error(ex.Message); }
         }
 
-        // ---------- фильтрация игр по платформе ----------
+        // ---------- список игр: фильтр по платформе + поиск ----------
 
         private void RefreshGames()
         {
             if (allGames == null || cmbPlatform.SelectedValue == null) return;
 
             int platformId = Convert.ToInt32(cmbPlatform.SelectedValue);
+            string q = (txtGameSearch == null ? "" : txtGameSearch.Text.Trim()).ToLowerInvariant();
+
             populating = true;
+            checkedListGames.BeginUpdate();
             try
             {
                 checkedListGames.Items.Clear();
                 foreach (DataRow row in allGames.Select("platform_id = " + platformId))
                 {
+                    string name = Convert.ToString(row["name"]);
+                    if (q.Length > 0 && name.ToLowerInvariant().IndexOf(q, StringComparison.Ordinal) < 0)
+                        continue;
+
                     int gid = Convert.ToInt32(row["id"]);
-                    var item = new GameItem { Id = gid, Name = Convert.ToString(row["name"]) };
-                    checkedListGames.Items.Add(item, checkedIds.Contains(gid));
+                    checkedListGames.Items.Add(new GameItem { Id = gid, Name = name }, checkedIds.Contains(gid));
                 }
             }
-            finally { populating = false; }
+            finally
+            {
+                checkedListGames.EndUpdate();
+                populating = false;
+            }
         }
 
         private void CheckedListGames_ItemCheck(object sender, ItemCheckEventArgs e)
@@ -228,6 +274,23 @@ namespace GameAccountRental
             var item = (GameItem)checkedListGames.Items[e.Index];
             if (e.NewValue == CheckState.Checked) checkedIds.Add(item.Id);
             else checkedIds.Remove(item.Id);
+        }
+
+        /// <summary>Выделить / снять выделение со всех игр, которые сейчас видны в списке (с учётом поиска).</summary>
+        private void SetAllChecked(bool value)
+        {
+            populating = true;
+            try
+            {
+                for (int i = 0; i < checkedListGames.Items.Count; i++)
+                {
+                    var item = (GameItem)checkedListGames.Items[i];
+                    checkedListGames.SetItemChecked(i, value);
+                    if (value) checkedIds.Add(item.Id);
+                    else checkedIds.Remove(item.Id);
+                }
+            }
+            finally { populating = false; }
         }
 
         // ---------- сохранение ----------
@@ -251,6 +314,12 @@ namespace GameAccountRental
                 bool isNew = string.IsNullOrWhiteSpace(txtId.Text);
                 int accountId;
 
+                // Игры выбранной платформы, отмеченные галочками (учитываются и скрытые поиском)
+                int platformId = Convert.ToInt32(cmbPlatform.SelectedValue);
+                var allowed = new HashSet<int>(
+                    allGames.Select("platform_id = " + platformId).Select(r => Convert.ToInt32(r["id"])));
+                List<int> gameIds = checkedIds.Where(allowed.Contains).ToList();
+
                 using (var conn = new NpgsqlConnection(ConnStr))
                 {
                     conn.Open();
@@ -268,7 +337,7 @@ namespace GameAccountRental
                             cmd.Parameters.Add(new NpgsqlParameter("@pass", txtAccPassword.Text));
                             cmd.Parameters.Add(new NpgsqlParameter("@price", numPrice.Value));
                             cmd.Parameters.Add(new NpgsqlParameter("@sid", Convert.ToInt32(cmbStatus.SelectedValue)));
-                            cmd.Parameters.Add(new NpgsqlParameter("@pid", Convert.ToInt32(cmbPlatform.SelectedValue)));
+                            cmd.Parameters.Add(new NpgsqlParameter("@pid", platformId));
                             if (!isNew)
                                 cmd.Parameters.Add(new NpgsqlParameter("@id", int.Parse(txtId.Text)));
 
@@ -283,15 +352,13 @@ namespace GameAccountRental
                             cmd.ExecuteNonQuery();
                         }
 
-                        // Только игры выбранной платформы, отмеченные галочками
-                        foreach (var obj in checkedListGames.CheckedItems)
+                        foreach (int gid in gameIds)
                         {
-                            var item = (GameItem)obj;
                             using (var cmd = new NpgsqlCommand(
                                 "INSERT INTO account_game (account_id, game_id) VALUES (@aid, @gid)", conn, tx))
                             {
                                 cmd.Parameters.Add(new NpgsqlParameter("@aid", accountId));
-                                cmd.Parameters.Add(new NpgsqlParameter("@gid", item.Id));
+                                cmd.Parameters.Add(new NpgsqlParameter("@gid", gid));
                                 cmd.ExecuteNonQuery();
                             }
                         }

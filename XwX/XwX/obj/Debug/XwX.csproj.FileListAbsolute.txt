@@ -38,7 +38,6 @@ C:\Users\413\Documents\GitHub\zaripov_practic\XwX\XwX\bin\Debug\System.ValueTupl
 C:\Users\413\Documents\GitHub\zaripov_practic\XwX\XwX\obj\Debug\XwX.csproj.Up2Date
 C:\Users\413\Documents\GitHub\zaripov_practic\XwX\XwX\obj\Debug\XwX.exe
 C:\Users\413\Documents\GitHub\zaripov_practic\XwX\XwX\obj\Debug\XwX.pdb
-C:\Users\413\Documents\GitHub\zaripov_practic\XwX\XwX\obj\Debug\XwX.FormAdmin.resources
 C:\Users\413\Documents\GitHub\zaripov_practic\XwX\XwX\obj\Debug\GameAccountRental.FormMain.resources
 C:\Users\Diller\Documents\GitHub\zaripov_practic\XwX\XwX\obj\Debug\XwX.csproj.AssemblyReference.cache
 C:\Users\Diller\Documents\GitHub\zaripov_practic\XwX\XwX\obj\Debug\GameAccountRental.FormLogin.resources
@@ -82,3 +81,4 @@ C:\Users\Diller\Documents\GitHub\zaripov_practic\XwX\XwX\bin\Debug\System.Text.J
 C:\Users\Diller\Documents\GitHub\zaripov_practic\XwX\XwX\bin\Debug\System.Threading.Tasks.Extensions.xml
 C:\Users\Diller\Documents\GitHub\zaripov_practic\XwX\XwX\bin\Debug\System.ValueTuple.xml
 C:\Users\Diller\Documents\GitHub\zaripov_practic\XwX\XwX\obj\Debug\XwX.csproj.Up2Date
+C:\Users\413\Documents\GitHub\zaripov_practic\XwX\XwX\obj\Debug\GameAccountRental.FormAdmin.resources

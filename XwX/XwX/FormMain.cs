@@ -20,10 +20,9 @@ namespace GameAccountRental
             this.StartPosition = FormStartPosition.CenterScreen;
             this.MinimumSize = new Size(800, 600);
             this.Text = "Каталог аккаунтов";
-            Theme.Apply(this);
 
             // Порядок добавления: Fill -> Bottom -> Top (последний Top окажется выше всех)
-            var gridHost = new Panel { Dock = DockStyle.Fill, Padding = new Padding(16, 4, 16, 4), BackColor = Theme.Bg };
+            var gridHost = new Panel { Dock = DockStyle.Fill, Padding = new Padding(16, 4, 16, 4) };
             dgv = new DataGridView
             {
                 Dock = DockStyle.Fill,
@@ -33,13 +32,32 @@ namespace GameAccountRental
                 AllowUserToResizeRows = false,
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 MultiSelect = false,
+                ShowCellToolTips = true,
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
             };
             Theme.StyleGrid(dgv);
+
+            // Двойной клик — подробная информация об аккаунте
+            dgv.CellDoubleClick += (s, e) =>
+            {
+                if (e.RowIndex < 0) return;
+                OpenDetails(Convert.ToInt32(dgv.Rows[e.RowIndex].Cells["id"].Value));
+            };
+
+            // Полный список игр во всплывающей подсказке (колонка «Игры» обрезается многоточием)
+            dgv.CellToolTipTextNeeded += (s, e) =>
+            {
+                if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
+                if (dgv.Columns[e.ColumnIndex].HeaderText != "Игры") return;
+                string full = Convert.ToString(dgv[e.ColumnIndex, e.RowIndex].Value);
+                if (!string.IsNullOrEmpty(full))
+                    e.ToolTipText = full.Replace(", ", Environment.NewLine);
+            };
+
             gridHost.Controls.Add(dgv);
             this.Controls.Add(gridHost);
 
-            var bottom = new Panel { Dock = DockStyle.Bottom, Height = 70, Padding = new Padding(16, 10, 16, 16), BackColor = Theme.Bg };
+            var bottom = new Panel { Dock = DockStyle.Bottom, Height = 70, Padding = new Padding(16, 10, 16, 16) };
             btnRent = Theme.MakeButton("Арендовать выбранный аккаунт", BtnKind.Primary);
             btnRent.Dock = DockStyle.Fill;
             btnRent.Click += BtnRent_Click;
@@ -51,14 +69,14 @@ namespace GameAccountRental
 
             // Порядок: Fill -> разделитель -> Right (последний докуется первым)
             bottom.Controls.Add(btnRent);
-            bottom.Controls.Add(new Panel { Dock = DockStyle.Right, Width = 12, BackColor = Theme.Bg });
+            bottom.Controls.Add(new Panel { Dock = DockStyle.Right, Width = 12 });
             bottom.Controls.Add(btnLogout);
             this.Controls.Add(bottom);
 
-            var toolbar = new Panel { Dock = DockStyle.Top, Height = 64, BackColor = Theme.Bg };
+            var toolbar = new Panel { Dock = DockStyle.Top, Height = 64 };
             txtSearch = new TextBox { Left = 16, Top = 18, Width = 400 };
             Theme.StyleInput(txtSearch);
-            Theme.SetPlaceholder(txtSearch, "Поиск по аккаунту, платформе или игре…");
+            Theme.SetPlaceholder(txtSearch, "Поиск по аккаунту...");
             btnSearch = Theme.MakeButton("Найти", BtnKind.Secondary);
             btnSearch.Left = 428;
             btnSearch.Top = 17;
@@ -72,7 +90,21 @@ namespace GameAccountRental
             this.Controls.Add(Theme.MakeHeader("Каталог аккаунтов", true));
             this.AcceptButton = btnSearch;
 
+            Theme.Apply(this);
             this.Load += (s, e) => LoadData();
+        }
+
+        private void OpenDetails(int accountId)
+        {
+            try
+            {
+                using (var f = new FormAccountDetails(accountId))
+                    f.ShowDialog(this);
+            }
+            catch (Exception ex)
+            {
+                Theme.Error(ex.Message);
+            }
         }
 
         private void LoadData()
@@ -173,7 +205,7 @@ namespace GameAccountRental
                     int? busyId = GetStatusId(conn, "арендован");
                     if (!freeId.HasValue || !busyId.HasValue)
                     {
-                        Theme.Error("В справочнике статусов аккаунтов должны быть значения «свободен» и «занят».");
+                        Theme.Error("В справочнике статусов аккаунтов должны быть значения «свободен» и «арендован».");
                         return;
                     }
 

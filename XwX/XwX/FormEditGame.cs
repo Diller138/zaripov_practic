@@ -3,6 +3,7 @@ using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
 using Npgsql;
+using NpgsqlTypes;
 
 namespace GameAccountRental
 {
@@ -10,8 +11,14 @@ namespace GameAccountRental
     {
         private const string ConnStr = "Host=localhost;Port=5432;Database=MyDataBase;Username=user1;Password=12345678";
 
-        private TextBox txtId, txtTitle, txtGenre;
-        private ComboBox cmbPlatform;
+        private static readonly string[] Genres =
+        {
+            "Shooter", "RPG", "MOBA", "Strategy", "Action", "Adventure", "Simulator", "Sports",
+            "Racing", "Horror", "Survival", "Fighting", "Battle Royale", "MMO", "Sandbox", "Puzzle", "Indie"
+        };
+
+        private TextBox txtId, txtTitle, txtCoverUrl;
+        private ComboBox cmbGenre, cmbPlatform;
         private Button btnSave;
 
         public FormEditGame(int? gameId = null)
@@ -19,11 +26,9 @@ namespace GameAccountRental
             this.Font = new Font("Segoe UI", 10f);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.MinimumSize = new Size(800, 600);
-            this.Padding = new Padding(20);
             this.Text = gameId.HasValue ? "Редактирование игры" : "Новая игра";
-            Theme.Apply(this);
 
-            var host = new Panel { Dock = DockStyle.Fill, BackColor = Theme.Bg };
+            var host = new Panel { Dock = DockStyle.Fill };
             this.Controls.Add(host);
             this.Controls.Add(Theme.MakeHeader(this.Text, false));
 
@@ -40,23 +45,26 @@ namespace GameAccountRental
             table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 376));
             card.Controls.Add(table);
 
-            txtId = new TextBox { ReadOnly = true };
+            txtId = new TextBox { ReadOnly = true, Enabled = false };   // ID менять нельзя — серое, неактивное поле
             txtTitle = new TextBox();
-            txtGenre = new TextBox();
+            cmbGenre = new ComboBox();
+            txtCoverUrl = new TextBox();
             cmbPlatform = new ComboBox();
 
             Theme.StyleInput(txtId);
-            txtId.BackColor = Theme.Bg;      // ID нельзя менять — визуально «приглушаем»
-            txtId.ForeColor = Theme.Muted;
             Theme.StyleInput(txtTitle);
-            Theme.StyleInput(txtGenre);
+            Theme.StyleCombo(cmbGenre);
+            cmbGenre.DropDownStyle = ComboBoxStyle.DropDown;            // можно выбрать из списка или вписать свой жанр
+            cmbGenre.Items.AddRange(Genres);
+            Theme.StyleInput(txtCoverUrl);
             Theme.StyleCombo(cmbPlatform);
             Theme.SetPlaceholder(txtTitle, "Например, Counter-Strike 2");
-            Theme.SetPlaceholder(txtGenre, "Например, Шутер");
+            Theme.SetPlaceholder(txtCoverUrl, "https://…/cover.jpg");
 
             Theme.AddStacked(table, "ID", txtId);
             Theme.AddStacked(table, "Название", txtTitle);
-            Theme.AddStacked(table, "Жанр", txtGenre);
+            Theme.AddStacked(table, "Жанр", cmbGenre);
+            Theme.AddStacked(table, "Ссылка на обложку", txtCoverUrl);
             Theme.AddStacked(table, "Платформа", cmbPlatform);
 
             btnSave = Theme.MakeButton("Сохранить", BtnKind.Primary);
@@ -73,6 +81,8 @@ namespace GameAccountRental
 
             LoadPlatforms();
             if (gameId.HasValue) LoadGame(gameId.Value);
+
+            Theme.Apply(this);
         }
 
         private void LoadPlatforms()
@@ -97,7 +107,7 @@ namespace GameAccountRental
             {
                 using (var conn = new NpgsqlConnection(ConnStr))
                 using (var cmd = new NpgsqlCommand(
-                    "SELECT id, title, genre, platform_id FROM game WHERE id = @id", conn))
+                    "SELECT id, title, genre, platform_id, cover_url FROM game WHERE id = @id", conn))
                 {
                     cmd.Parameters.Add(new NpgsqlParameter("@id", id));
                     conn.Open();
@@ -110,7 +120,8 @@ namespace GameAccountRental
                         }
                         txtId.Text = r["id"].ToString();
                         txtTitle.Text = Convert.ToString(r["title"]);
-                        txtGenre.Text = r["genre"] == DBNull.Value ? "" : Convert.ToString(r["genre"]);
+                        cmbGenre.Text = r["genre"] == DBNull.Value ? "" : Convert.ToString(r["genre"]);
+                        txtCoverUrl.Text = r["cover_url"] == DBNull.Value ? "" : Convert.ToString(r["cover_url"]);
                         cmbPlatform.SelectedValue = Convert.ToInt32(r["platform_id"]);
                     }
                 }
@@ -121,6 +132,8 @@ namespace GameAccountRental
         private void BtnSave_Click(object sender, EventArgs e)
         {
             string title = txtTitle.Text.Trim();
+            string cover = txtCoverUrl.Text.Trim();
+
             if (title.Length == 0)
             {
                 Theme.Warn("Введите название игры.");
@@ -131,20 +144,34 @@ namespace GameAccountRental
                 Theme.Warn("Выберите платформу.");
                 return;
             }
+            if (cover.Length > 0)
+            {
+                Uri uri;
+                if (!Uri.TryCreate(cover, UriKind.Absolute, out uri) ||
+                    (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+                {
+                    Theme.Warn("Ссылка на обложку должна начинаться с http:// или https://");
+                    return;
+                }
+            }
 
             try
             {
                 bool isNew = string.IsNullOrWhiteSpace(txtId.Text);
                 string sql = isNew
-                    ? "INSERT INTO game (title, genre, platform_id) VALUES (@title, @genre, @pid)"
-                    : "UPDATE game SET title = @title, genre = @genre, platform_id = @pid WHERE id = @id";
+                    ? "INSERT INTO game (title, genre, platform_id, cover_url) VALUES (@title, @genre, @pid, @cover)"
+                    : "UPDATE game SET title = @title, genre = @genre, platform_id = @pid, cover_url = @cover WHERE id = @id";
 
                 using (var conn = new NpgsqlConnection(ConnStr))
                 using (var cmd = new NpgsqlCommand(sql, conn))
                 {
                     cmd.Parameters.Add(new NpgsqlParameter("@title", title));
-                    cmd.Parameters.Add(new NpgsqlParameter("@genre", txtGenre.Text.Trim()));
+                    cmd.Parameters.Add(new NpgsqlParameter("@genre", cmbGenre.Text.Trim()));
                     cmd.Parameters.Add(new NpgsqlParameter("@pid", Convert.ToInt32(cmbPlatform.SelectedValue)));
+                    cmd.Parameters.Add(new NpgsqlParameter("@cover", NpgsqlDbType.Text)
+                    {
+                        Value = cover.Length == 0 ? (object)DBNull.Value : cover
+                    });
                     if (!isNew)
                         cmd.Parameters.Add(new NpgsqlParameter("@id", int.Parse(txtId.Text)));
 

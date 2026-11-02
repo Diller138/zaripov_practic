@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace GameAccountRental // Убедись, что namespace совпадает с твоим проектом!
+namespace GameAccountRental
 {
     internal static class Program
     {
