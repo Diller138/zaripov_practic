@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Microsoft.VisualBasic;
+using Npgsql;
+using OfficeOpenXml; // EPPlus 4.5.3.3
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -8,8 +11,6 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Npgsql;
-using OfficeOpenXml; // EPPlus 4.5.3.3
 
 namespace GameAccountRental
 {
@@ -28,9 +29,8 @@ namespace GameAccountRental
         private Button btnAddAccount, btnEditAccount, btnDeleteAccount;
         private Button btnToggleUser;
         private Button btnExportExcel, btnLogout;
-        private CheckBox chkDark;
 
-        private int _gamesVersion;   // чтобы устаревшие загрузки миниатюр не писали в новую таблицу
+        private static readonly Size ThumbSize = new Size(96, 54);
 
         public FormAdmin()
         {
@@ -45,17 +45,6 @@ namespace GameAccountRental
 
             var bottom = new Panel { Dock = DockStyle.Bottom, Height = 70, Padding = new Padding(16, 10, 16, 16) };
 
-            chkDark = new CheckBox
-            {
-                Text = "Темная тема",
-                Dock = DockStyle.Fill,
-                AutoSize = false,
-                TextAlign = ContentAlignment.MiddleLeft,
-                Padding = new Padding(20, 0, 0, 0),
-                Cursor = Cursors.Hand,
-                Checked = Theme.IsDarkMode
-            };
-            chkDark.CheckedChanged += (s, e) => Theme.SetDark(chkDark.Checked);
 
             btnExportExcel = Theme.MakeButton("Экспорт заказов в Excel", BtnKind.Success);
             btnExportExcel.Dock = DockStyle.Left;
@@ -67,7 +56,6 @@ namespace GameAccountRental
             btnLogout.Width = 160;
             btnLogout.Click += (s, e) => this.Close();
 
-            bottom.Controls.Add(chkDark);
             bottom.Controls.Add(btnExportExcel);
             bottom.Controls.Add(btnLogout);
             this.Controls.Add(bottom);
@@ -78,6 +66,9 @@ namespace GameAccountRental
             var tabGames = MakeTab("Игры");
             dgvGames = MakeGrid();
             dgvGames.RowTemplate.Height = 56;                       // место под миниатюру
+            dgvGames.CellFormatting += DgvGames_CellFormatting;     // обложки из ImageCache
+            ImageCache.Loaded += OnCoversLoaded;                    // картинка догрузилась — перерисовать
+            this.FormClosed += (s, e) => ImageCache.Loaded -= OnCoversLoaded;
             dgvGames.CellDoubleClick += (s, e) =>
             {
                 if (e.RowIndex >= 0)
@@ -201,46 +192,43 @@ namespace GameAccountRental
 
         private static void Bind(DataGridView dgv, DataTable dt)
         {
+            var restore = GridState.Capture(dgv);   // скролл / выбранная строка / сортировка
             dgv.DataSource = dt;
             if (dgv.Columns["id"] != null)
                 dgv.Columns["id"].Visible = false;
+            restore();
         }
 
         // ---------- загрузка: игры (с миниатюрами) ----------
 
-        private static readonly Dictionary<string, Image> ThumbCache = new Dictionary<string, Image>();
-
-        private static async Task<Image> GetThumbAsync(string url)
+        private void OnCoversLoaded()
         {
-            if (string.IsNullOrWhiteSpace(url)) return Theme.Placeholder(96, 54);
+            if (!dgvGames.IsDisposed) dgvGames.Invalidate();
+        }
 
-            Image cached;
-            if (ThumbCache.TryGetValue(url, out cached)) return cached;
+        /// <summary>Колонка «Обложка» — не данные, а картинка из кэша: переживает перезагрузку DataSource, сортировку и фильтрацию.</summary>
+        private void DgvGames_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (e.RowIndex < 0 || e.ColumnIndex < 0 || e.RowIndex >= dgvGames.Rows.Count) return;
+            if (dgvGames.Columns[e.ColumnIndex].Name != "Обложка") return;
 
-            try
+            string url = "";
+            if (dgvGames.Columns.Contains("cover_url"))
             {
-                using (var wc = new WebClient())
-                {
-                    byte[] data = await wc.DownloadDataTaskAsync(url);
-                    using (var ms = new MemoryStream(data))
-                    using (var src = Image.FromStream(ms))
-                    {
-                        var thumb = new Bitmap(src, new Size(96, 54));
-                        ThumbCache[url] = thumb;
-                        return thumb;
-                    }
-                }
+                object v = dgvGames.Rows[e.RowIndex].Cells["cover_url"].Value;
+                url = v == null || v == DBNull.Value ? "" : Convert.ToString(v);
             }
-            catch
-            {
-                return Theme.Placeholder(96, 54);
-            }
+
+            e.Value = ImageCache.Get(url, ThumbSize);
+            e.FormattingApplied = true;
         }
 
         private void LoadGames()
         {
             try
             {
+                ImageCache.ClearFailed();   // повторить попытку для ссылок, которые раньше не загрузились
+
                 DataTable dt = Query(
                     "SELECT g.id, g.title AS \"Название\", g.genre AS \"Жанр\", p.name AS \"Платформа\", g.cover_url " +
                     "FROM game g JOIN platform p ON p.id = g.platform_id ORDER BY g.id");
@@ -263,37 +251,8 @@ namespace GameAccountRental
                     });
                 }
                 dgvGames.Columns["Обложка"].DisplayIndex = 0;
-
-                FillCovers(++_gamesVersion);
             }
             catch (Exception ex) { Theme.Error(ex.Message); }
-        }
-
-        private async void FillCovers(int version)
-        {
-            try
-            {
-                List<DataGridViewRow> rows = dgvGames.Rows.Cast<DataGridViewRow>().ToList();
-
-                // Сначала ставим заглушки, затем качаем обложки параллельно
-                foreach (var r in rows)
-                    r.Cells["Обложка"].Value = Theme.Placeholder(96, 54);
-
-                List<Task<Image>> tasks = rows
-                    .Select(r => GetThumbAsync(Convert.ToString(r.Cells["cover_url"].Value)))
-                    .ToList();
-
-                for (int i = 0; i < rows.Count; i++)
-                {
-                    Image img = await tasks[i];
-                    if (version != _gamesVersion || rows[i].DataGridView == null) return;
-                    rows[i].Cells["Обложка"].Value = img;
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex);   // обложки — не критично
-            }
         }
 
         // ---------- загрузка: аккаунты и пользователи ----------

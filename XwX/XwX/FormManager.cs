@@ -1,4 +1,5 @@
-﻿using Npgsql;
+﻿using Microsoft.VisualBasic;
+using Npgsql;
 using System;
 using System.Data;
 using System.Drawing;
@@ -95,6 +96,7 @@ namespace GameAccountRental
                         da.Fill(dt);
                 }
 
+                var restoreGrid = GridState.Capture(dgv);   // запоминаем скролл / выбор / сортировку
                 dgv.DataSource = dt;
                 if (dgv.Columns["id"] != null)
                     dgv.Columns["id"].Visible = false;
@@ -111,6 +113,8 @@ namespace GameAccountRental
                     dgv.Columns["Сумма"].DefaultCellStyle.Format = "N2";
                     dgv.Columns["Сумма"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
                 }
+
+                restoreGrid();   // возвращаем скролл / выбор / сортировку
             }
             catch (Exception ex)
             {

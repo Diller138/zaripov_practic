@@ -18,6 +18,10 @@ namespace GameAccountRental
             this.StartPosition = FormStartPosition.CenterScreen;
             this.MinimumSize = new Size(800, 600);
             this.Text = "Регистрация";
+
+            // ТУМБЛЕР ТЕМЫ (правый верхний угол)
+            this.Controls.Add(new ThemeToggle { Left = this.ClientSize.Width - 80, Top = 15, Height = 40, Anchor = AnchorStyles.Top | AnchorStyles.Right });
+
             Theme.Apply(this);
 
             var host = new Panel { Dock = DockStyle.Fill, BackColor = Theme.Bg };

@@ -5,6 +5,7 @@ using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using XwX;
 
 namespace GameAccountRental
 {
@@ -14,6 +15,7 @@ namespace GameAccountRental
     public static class Theme
     {
         // ======================= ТЕМА =======================
+        public static event EventHandler ThemeChanged;
         public static bool IsDarkMode { get; set; } = false;
 
         public static Color Bg { get { return IsDarkMode ? Color.FromArgb(30, 30, 30) : Color.FromArgb(243, 244, 247); } }
@@ -32,9 +34,16 @@ namespace GameAccountRental
 
         public static void SetDark(bool dark)
         {
+            if (IsDarkMode == dark) return;
             IsDarkMode = dark;
+
+            // перекрашиваем все открытые формы
             foreach (Form f in Application.OpenForms.Cast<Form>().ToArray())
                 ApplyTheme(f);
+
+            // сообщаем тумблерам (ThemeToggle), чтобы они доехали до нужного положения
+            EventHandler handler = ThemeChanged;
+            if (handler != null) handler(null, EventArgs.Empty);
         }
 
         public static void Apply(Form f)
@@ -309,6 +318,7 @@ namespace GameAccountRental
         public static Panel MakeHeader(string title, bool showUser)
         {
             var p = new Panel { Dock = DockStyle.Top, Height = 64, BackColor = Surface, Tag = Skin.Surface };
+
             var lbl = new Label
             {
                 Text = title,
@@ -330,12 +340,28 @@ namespace GameAccountRental
                     Tag = Skin.Muted,
                     AutoSize = false,
                     Dock = DockStyle.Right,
-                    Width = 280,
+                    Width = 240,
                     TextAlign = ContentAlignment.MiddleRight,
-                    Padding = new Padding(0, 0, 20, 0)
+                    Padding = new Padding(0, 0, 12, 0)
                 };
                 p.Controls.Add(user);
             }
+
+            // Тумблер темы (самый правый элемент шапки)
+            var toggleHost = new Panel { Dock = DockStyle.Right, Width = 170, BackColor = Surface, Tag = Skin.Surface };
+            var toggleCaption = new Label
+            {
+                Text = "Тёмная тема",
+                ForeColor = Muted,
+                Tag = Skin.Muted,
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleRight,
+                Padding = new Padding(0, 0, 8, 0)
+            };
+            var toggle = new ThemeToggle { Dock = DockStyle.Right };
+            toggleHost.Controls.Add(toggleCaption);   // Fill первым
+            toggleHost.Controls.Add(toggle);          // затем Right
+            p.Controls.Add(toggleHost);
 
             p.Controls.Add(new Panel { Dock = DockStyle.Left, Width = 4, BackColor = Accent, Tag = Skin.Accent });
             return p;

@@ -23,6 +23,9 @@ namespace GameAccountRental
             // Акцентная полоса сверху
             this.Controls.Add(new Panel { Dock = DockStyle.Top, Height = 5, BackColor = Theme.Accent, Tag = Skin.Accent });
 
+            // ТУМБЛЕР ТЕМЫ (правый верхний угол)
+            this.Controls.Add(new ThemeToggle { Left = this.ClientSize.Width - 72, Top = 15, Height = 40 });
+
             this.Controls.Add(new Label
             {
                 Text = "Аренда игровых аккаунтов",
@@ -111,7 +114,7 @@ namespace GameAccountRental
                     return;
                 }
 
-                // Блокировку проверяем только после верного пароля (чтобы не раскрывать, какие логины существуют)
+                // Блокировку проверяем только после верного пароля
                 if (!user.IsActive)
                 {
                     Theme.Warn("Вы заблокированы");
@@ -130,7 +133,6 @@ namespace GameAccountRental
                 Theme.Error("Ошибка БД: " + ex.Message);
             }
         }
-
 
         private void BtnRegister_Click(object sender, EventArgs e)
         {

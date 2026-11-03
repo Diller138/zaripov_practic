@@ -1,4 +1,5 @@
-﻿using Npgsql;
+﻿using Microsoft.VisualBasic;
+using Npgsql;
 using System;
 using System.Data;
 using System.Drawing;
@@ -100,6 +101,7 @@ namespace GameAccountRental
             {
                 using (var f = new FormAccountDetails(accountId))
                     f.ShowDialog(this);
+                LoadData();   // статус аккаунта мог измениться после аренды
             }
             catch (Exception ex)
             {
@@ -137,6 +139,7 @@ namespace GameAccountRental
                         da.Fill(dt);
                 }
 
+                var restoreGrid = GridState.Capture(dgv);   // запоминаем скролл / выбор / сортировку
                 dgv.DataSource = dt;
                 if (dgv.Columns["id"] != null)
                     dgv.Columns["id"].Visible = false;
@@ -149,30 +152,12 @@ namespace GameAccountRental
                     price.DefaultCellStyle.Format = "N2";
                     price.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
                 }
+
+                restoreGrid();   // возвращаем скролл / выбор / сортировку
             }
             catch (Exception ex)
             {
                 Theme.Error(ex.Message);
-            }
-        }
-
-        private static string GetStatus(NpgsqlConnection conn, int accountId)
-        {
-            using (var cmd = new NpgsqlCommand(
-                "SELECT s.name FROM account a JOIN account_status s ON s.id = a.status_id WHERE a.id = @aid", conn))
-            {
-                cmd.Parameters.Add(new NpgsqlParameter("@aid", accountId));
-                return Convert.ToString(cmd.ExecuteScalar());
-            }
-        }
-
-        private static int? GetStatusId(NpgsqlConnection conn, string name)
-        {
-            using (var cmd = new NpgsqlCommand("SELECT id FROM account_status WHERE name = @n", conn))
-            {
-                cmd.Parameters.Add(new NpgsqlParameter("@n", name));
-                object res = cmd.ExecuteScalar();
-                return res == null || res == DBNull.Value ? (int?)null : Convert.ToInt32(res);
             }
         }
 
@@ -184,86 +169,10 @@ namespace GameAccountRental
                 return;
             }
 
-            try
-            {
-                int accountId = Convert.ToInt32(dgv.CurrentRow.Cells["id"].Value);
+            // Вся логика (проверка статуса, вопрос о сроке, транзакция, понятные ошибки) — в RentService
+            RentService.TryRent(this, Convert.ToInt32(dgv.CurrentRow.Cells["id"].Value));
 
-                using (var conn = new NpgsqlConnection(ConnStr))
-                {
-                    conn.Open();
-
-                    // Быстрая проверка до вопроса о сроке
-                    string status = GetStatus(conn, accountId);
-                    if (!string.Equals(status, "свободен", StringComparison.OrdinalIgnoreCase))
-                    {
-                        Theme.Warn("Этот аккаунт уже занят. Выберите другой — свободные аккаунты показаны в начале списка.");
-                        LoadData();
-                        return;
-                    }
-
-                    int? freeId = GetStatusId(conn, "свободен");
-                    int? busyId = GetStatusId(conn, "арендован");
-                    if (!freeId.HasValue || !busyId.HasValue)
-                    {
-                        Theme.Error("В справочнике статусов аккаунтов должны быть значения «свободен» и «арендован».");
-                        return;
-                    }
-
-                    int? days = Theme.PromptNumber(this, "Аренда", "На сколько дней арендовать?", 1, 365, 1);
-                    if (!days.HasValue) return; // отмена
-
-                    using (var tx = conn.BeginTransaction())
-                    {
-                        // Атомарно «занимаем» аккаунт: сработает, только если он всё ещё свободен
-                        int updated;
-                        using (var cmd = new NpgsqlCommand(
-                            "UPDATE account SET status_id = @busy WHERE id = @aid AND status_id = @free", conn, tx))
-                        {
-                            cmd.Parameters.Add(new NpgsqlParameter("@busy", busyId.Value));
-                            cmd.Parameters.Add(new NpgsqlParameter("@free", freeId.Value));
-                            cmd.Parameters.Add(new NpgsqlParameter("@aid", accountId));
-                            updated = cmd.ExecuteNonQuery();
-                        }
-
-                        if (updated == 0)
-                        {
-                            tx.Rollback();
-                            Theme.Warn("Пока вы выбирали срок, этот аккаунт уже арендовал другой пользователь. Выберите другой.");
-                            LoadData();
-                            return;
-                        }
-
-                        using (var cmd = new NpgsqlCommand(
-                            "INSERT INTO orders (user_id, account_id, start_date, end_date, total_price, order_status_id) " +
-                            "VALUES (@uid, @aid, CURRENT_DATE, CURRENT_DATE + @days, 0, 1)", conn, tx))
-                        {
-                            cmd.Parameters.Add(new NpgsqlParameter("@uid", Session.CurrentUser.Id));
-                            cmd.Parameters.Add(new NpgsqlParameter("@aid", accountId));
-                            cmd.Parameters.Add(new NpgsqlParameter("@days", days.Value));
-                            cmd.ExecuteNonQuery();
-                        }
-
-                        tx.Commit();
-                    }
-                }
-
-                Theme.Info("Заявка на аренду создана. Аккаунт закреплён за вами до подтверждения менеджером.");
-                LoadData();
-            }
-            catch (PostgresException ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex);
-                if (ex.SqlState == "23505" || ex.SqlState == "23P01" || ex.SqlState == "23514" || ex.SqlState == "P0001")
-                    Theme.Warn("Этот аккаунт уже арендован или занят на выбранные даты. Пожалуйста, выберите другой аккаунт.");
-                else
-                    Theme.Error("Не удалось оформить аренду. Попробуйте ещё раз или обратитесь к администратору.");
-                LoadData();
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex);
-                Theme.Error("Не удалось оформить аренду. Проверьте подключение к базе данных и попробуйте ещё раз.");
-            }
+            LoadData();   // обновляем в любом случае: статус мог измениться
         }
     }
 }

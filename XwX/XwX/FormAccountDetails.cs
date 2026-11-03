@@ -5,7 +5,7 @@ using System.Windows.Forms;
 
 namespace GameAccountRental
 {
-    /// <summary>Подробная информация об аккаунте: логин, платформа, цена, статус и игры с обложками.</summary>
+    /// <summary>Подробная информация об аккаунте: логин, платформа, цена, статус, игры с обложками и кнопка «Арендовать».</summary>
     public class FormAccountDetails : Form
     {
         private const string ConnStr = "Host=localhost;Port=5432;Database=MyDataBase;Username=user1;Password=12345678";
@@ -14,6 +14,7 @@ namespace GameAccountRental
         private Label lblLogin, lblPlatform, lblPrice, lblStatus;
         private FlowLayoutPanel flowGames;
         private Label lblGamesCaption;
+        private Button btnRent, btnClose;
 
         public FormAccountDetails(int accountId)
         {
@@ -36,10 +37,19 @@ namespace GameAccountRental
             this.Controls.Add(flowGames);
 
             var bottom = new Panel { Dock = DockStyle.Bottom, Height = 70, Padding = new Padding(16, 10, 16, 16) };
-            var btnClose = Theme.MakeButton("Закрыть", BtnKind.Secondary);
+
+            btnRent = Theme.MakeButton("Арендовать", BtnKind.Primary);
+            btnRent.Dock = DockStyle.Fill;
+            btnRent.Click += BtnRent_Click;
+
+            btnClose = Theme.MakeButton("Закрыть", BtnKind.Secondary);
             btnClose.Dock = DockStyle.Right;
             btnClose.Width = 160;
             btnClose.Click += (s, e) => this.Close();
+
+            // Порядок: Fill -> разделитель -> Right (последний докуется первым)
+            bottom.Controls.Add(btnRent);
+            bottom.Controls.Add(new Panel { Dock = DockStyle.Right, Width = 12 });
             bottom.Controls.Add(btnClose);
             this.Controls.Add(bottom);
 
@@ -88,7 +98,7 @@ namespace GameAccountRental
             this.Controls.Add(Theme.MakeHeader("Информация об аккаунте", false));
 
             Theme.Apply(this);
-            this.Load += (s, e) => LoadAccount();
+            this.Load += (s, e) => LoadAccount(true);
         }
 
         private static Label MakeValue()
@@ -102,7 +112,26 @@ namespace GameAccountRental
             };
         }
 
-        private void LoadAccount()
+        // ---------- аренда ----------
+
+        private void BtnRent_Click(object sender, EventArgs e)
+        {
+            // Та же логика, что и кнопка «Арендовать» в FormMain
+            if (RentService.TryRent(this, _accountId))
+            {
+                this.DialogResult = DialogResult.OK;   // FormMain обновит каталог
+                this.Close();
+            }
+            else
+            {
+                LoadAccount(false);   // статус мог измениться — обновляем только данные аккаунта
+            }
+        }
+
+        // ---------- загрузка ----------
+
+        /// <param name="reloadGames">false — обновить только верхнюю карточку (игры и обложки не трогаем).</param>
+        private void LoadAccount(bool reloadGames)
         {
             try
             {
@@ -130,12 +159,18 @@ namespace GameAccountRental
                             lblLogin.Text = Convert.ToString(r["login"]);
                             lblPlatform.Text = Convert.ToString(r["platform"]);
                             lblPrice.Text = Convert.ToDecimal(r["price_per_day"]).ToString("N2");
+
                             string status = Convert.ToString(r["status"]);
                             lblStatus.Text = status;
                             Color? c = Theme.StatusColor(status);
-                            if (c.HasValue) lblStatus.ForeColor = c.Value;
+                            lblStatus.ForeColor = c.HasValue ? c.Value : Theme.Text;
+
+                            // Арендовать можно только свободный аккаунт
+                            btnRent.Enabled = string.Equals(status, RentService.FreeStatus, StringComparison.OrdinalIgnoreCase);
                         }
                     }
+
+                    if (!reloadGames) return;
 
                     flowGames.SuspendLayout();
                     flowGames.Controls.Clear();
